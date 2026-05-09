@@ -89,6 +89,23 @@ var sb = {
   }
 };
 
+function Footer() {
+  return (
+    <div style={{textAlign:"center",padding:"20px 0 8px"}}>
+      <div style={{fontSize:11,color:"#374151"}}>v0.25 · <a href="mailto:kontakt@parkshare.pl" style={{color:"#4b5563",textDecoration:"none"}}>kontakt@parkshare.pl</a></div>
+    </div>
+  );
+}
+
+function ParkLogo({size}) {
+  size = size || 32;
+  return (
+    <div style={{width:size,height:size,borderRadius:Math.round(size*0.22),background:"#7c3aed",display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+      <span style={{fontSize:Math.round(size*0.58),fontWeight:800,color:"#fff",fontFamily:"system-ui,sans-serif",lineHeight:1,letterSpacing:"-0.5px"}}>P</span>
+    </div>
+  );
+}
+
 var c = {
   app: {fontFamily:"system-ui,sans-serif",minHeight:"100vh",background:"#0f1117",color:"#e8eaf0"},
   hdr: {background:"#1a1d2e",borderBottom:"1px solid #2a2d3e",padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8},
@@ -150,7 +167,7 @@ function AuthScreen({onAuth}) {
   if(verifyMsg) return (
     <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
       <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style>
-      <div style={{fontSize:40,marginBottom:16}}>📬</div>
+      <div style={{marginBottom:16}}><ParkLogo size={56}/></div>
       <div style={{...c.card(true),maxWidth:360,width:"100%",textAlign:"center"}}>
         <div style={{fontSize:16,fontWeight:600,color:"#e8eaf0",marginBottom:8}}>Sprawdź swoją skrzynkę!</div>
         <div style={{fontSize:13,color:"#6b7280",marginBottom:16,lineHeight:1.6}}>Wysłaliśmy link weryfikacyjny na adres<br/><span style={{color:"#a78bfa"}}>{email}</span><br/><br/>Kliknij w link w e-mailu, a następnie wróć tutaj i się zaloguj.</div>
@@ -162,7 +179,7 @@ function AuthScreen({onAuth}) {
   if(mode==="choose") return (
     <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
       <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style>
-      <div style={{fontSize:40,marginBottom:8}}>🅿</div>
+      <div style={{fontSize:40,marginBottom:8}}><ParkLogo size={56}/></div>
       <div style={{fontSize:24,fontWeight:600,color:"#a78bfa",marginBottom:4}}>ParkShare</div>
       <div style={{fontSize:13,color:"#4b5563",marginBottom:40}}>Wynajem miejsc parkingowych na osiedlu</div>
       <div style={{width:"100%",maxWidth:340,display:"flex",flexDirection:"column",gap:10}}>
@@ -230,7 +247,7 @@ function Landing({user,onJoin,onNew,onLogout}) {
 
   return (
     <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
-      <div style={{fontSize:40,marginBottom:8}}>🅿</div>
+      <div style={{fontSize:40,marginBottom:8}}><ParkLogo size={56}/></div>
       <div style={{fontSize:24,fontWeight:600,color:"#a78bfa",marginBottom:2}}>ParkShare</div>
       <div style={{fontSize:12,color:"#6b7280",marginBottom:28}}>Zalogowany jako: <span style={{color:"#a78bfa"}}>{user.name}</span>{user.guest?" (gość)":""}</div>
       <div style={{width:"100%",maxWidth:360}}>
@@ -643,7 +660,7 @@ function ParkApp({groupId,user,onLeave}) {
       <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style>
       <div style={c.hdr}>
         <div>
-          <div style={{fontSize:16,fontWeight:600,color:"#a78bfa"}}>🅿 ParkShare</div>
+          <div style={{fontSize:16,fontWeight:600,color:"#a78bfa",display:"flex",alignItems:"center",gap:8}}><ParkLogo size={22}/> ParkShare</div>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
             <span style={{fontSize:11,color:"#6b7280"}}>{group.name}</span>
             {isAdmin&&<span style={c.roleBadge("admin")}>Admin</span>}
@@ -688,8 +705,8 @@ function ParkApp({groupId,user,onLeave}) {
             </div>
             {user.guest&&<div style={{background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#6b7280"}}>Przeglądasz jako gość. <span style={{color:"#a78bfa",cursor:"pointer"}} onClick={onLeave}>Zaloguj się</span>, aby dodawać miejsca.</div>}
             {browseSpots.length===0?(
-              <div style={{textAlign:"center",padding:"40px 20px"}}>
-                <div style={{fontSize:32,marginBottom:12}}>🅿</div>
+                              <div style={{textAlign:"center",padding:"40px 20px"}}>
+                <div style={{marginBottom:16,display:"flex",justifyContent:"center"}}><ParkLogo size={48}/></div>
                 <div style={{fontSize:14,fontWeight:500,color:"#6b7280"}}>Brak wolnych miejsc tego dnia</div>
                 <div style={{fontSize:12,color:"#374151",marginTop:6}}>Spróbuj innego dnia lub wróć później</div>
               </div>
@@ -873,6 +890,10 @@ function ParkApp({groupId,user,onLeave}) {
           </div>
         </div>
       )}
+
+      <div style={{textAlign:"center",padding:"24px 0 8px",borderTop:"1px solid #1a1d2e"}}>
+        <div style={{fontSize:11,color:"#374151"}}>v0.25 · <a href="mailto:kontakt@parkshare.pl" style={{color:"#4b5563",textDecoration:"none"}}>kontakt@parkshare.pl</a></div>
+      </div>
 
       {showAdmin&&<AdminPanel groupId={groupId} user={user} spots={spots} slots={slots} onClose={function(){setShowAdmin(false);}} onDataChange={loadAll}/>}
       {showShare&&<ShareModal group={group} onClose={function(){setShowShare(false);}}/>}
