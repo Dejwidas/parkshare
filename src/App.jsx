@@ -540,7 +540,7 @@ function ParkApp({groupId,user,onLeave}) {
   var [view,setView]=useState("browse");
   var [selDate,setSelDate]=useState(new Date(today));
   var [showAdd,setShowAdd]=useState(false);
-  var [newSpot,setNewSpot]=useState({name:"",desc:"",owner:user.guest?"":user.name,phone:"",email:user.email||"",note:"",type:"underground"});
+  var [newSpot,setNewSpot]=useState({name:"",desc:"",owner:user.guest?"":user.name,phone:"",email:user.email||"",note:"",type:"underground",spotVisibility:"private"});
   var [bookModal,setBookModal]=useState(null);
   var [bookerName,setBookerName]=useState(user.guest?"":user.name);
   var [bookerPhone,setBookerPhone]=useState("");
@@ -592,8 +592,8 @@ function ParkApp({groupId,user,onLeave}) {
   async function addSpot(){
     if(!newSpot.name.trim()) return;
     try{
-      await sb.from("spots").insert({id:f.genId(),group_id:groupId,name:newSpot.name.trim(),desc:newSpot.desc,owner:newSpot.owner,owner_uid:user.uid,phone:newSpot.phone,email:newSpot.email,note:newSpot.note,type:newSpot.type});
-      setNewSpot({name:"",desc:"",owner:user.guest?"":user.name,phone:"",email:user.email||"",note:"",type:"underground"});
+      await sb.from("spots").insert({id:f.genId(),group_id:groupId,name:newSpot.name.trim(),desc:newSpot.desc,owner:newSpot.owner,owner_uid:user.uid,phone:newSpot.phone,email:newSpot.email,note:newSpot.note,type:newSpot.type,spot_visibility:newSpot.spotVisibility});
+      setNewSpot({name:"",desc:"",owner:user.guest?"":user.name,phone:"",email:user.email||"",note:"",type:"underground",spotVisibility:"private"});
       setShowAdd(false);showToast("Miejsce dodane!");loadAll();
     }catch(e){showToast("Błąd: "+e.message,"error");}
   }
@@ -750,10 +750,25 @@ function ParkApp({groupId,user,onLeave}) {
             {showAdd&&(
               <div style={{...c.card(true),marginBottom:20}}>
                 <div style={{fontSize:13,fontWeight:600,color:"#c4b5fd",marginBottom:14}}>Nowe miejsce</div>
-                {[["name","Numer miejsca (prywatny) *","np. A-15"],["desc","Opis","np. poziom -1, przy windzie"],["owner","Imię i nazwisko","np. Jan Kowalski"],["phone","Telefon","np. 600 123 456"],["email","E-mail","np. jan@email.com"]].map(function(row){
+                {[["name","Numer miejsca *","np. A-15"],["desc","Opis","np. poziom -1, przy windzie"],["owner","Imię i nazwisko","np. Jan Kowalski"],["phone","Telefon","np. 600 123 456"],["email","E-mail","np. jan@email.com"]].map(function(row){
                   var fld=row[0],l=row[1],p=row[2];
                   return <div key={fld} style={{marginBottom:10}}><label style={c.label}>{l}</label><input style={c.input} placeholder={p} value={newSpot[fld]} onChange={function(e){var v=e.target.value;setNewSpot(function(prev){return {...prev,[fld]:v};});}}/></div>;
                 })}
+                <div style={{marginBottom:10}}>
+                  <label style={c.label}>Widoczność numeru miejsca</label>
+                  <div style={{display:"flex",gap:8}}>
+                    {[["public","🔓 Jawne","Numer widoczny od razu po rezerwacji"],["private","🔒 Tajne","Numer widoczny po zatwierdzeniu przez właściciela"]].map(function(row){
+                      return (
+                        <button key={row[0]} style={{...c.btn(newSpot.spotVisibility===row[0]?"primary":"default"),flex:1,fontSize:11,padding:"8px 6px",display:"flex",flexDirection:"column",alignItems:"center",gap:2,height:"auto"}}
+                          onClick={function(){setNewSpot(function(p){return {...p,spotVisibility:row[0]};});}}>
+                          <span style={{fontSize:16}}>{row[1].split(" ")[0]}</span>
+                          <span style={{fontWeight:600}}>{row[1].split(" ")[1]}</span>
+                          <span style={{fontSize:10,opacity:0.7,fontWeight:400}}>{row[2]}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 <div style={{marginBottom:10}}>
                   <label style={c.label}>Rodzaj miejsca</label>
                   <div style={{display:"flex",gap:8}}>
@@ -865,9 +880,19 @@ function ParkApp({groupId,user,onLeave}) {
                 <div>
                   <div style={{fontSize:11,color:"#4b5563"}}>Numer miejsca</div>
                   {(function(){
-                    var mySlot=slots.find(function(sl){return sl.spot_id===contactModal.id&&sl.booked&&sl.booked_by_uid===user.uid&&!f.canCancel(sl.booked_at);});
-                    var show=!user.guest&&(isOwner(contactModal)||mySlot||isAdmin);
-                    return show?<div style={{fontSize:15,fontWeight:700,color:"#a78bfa"}}>{contactModal.name||"Nie podano"}</div>:<div style={{fontSize:12,color:"#374151"}}>Widoczny po zaakceptowaniu rezerwacji</div>;
+                    var isPublic = contactModal.spot_visibility === "public";
+                    var mySlot = slots.find(function(sl){return sl.spot_id===contactModal.id&&sl.booked&&sl.booked_by_uid===user.uid&&!f.canCancel(sl.booked_at);});
+                    var show = !user.guest && (isOwner(contactModal) || isAdmin || (isPublic && mySlot) || (!isPublic && mySlot));
+                    var showImmediate = !user.guest && (isOwner(contactModal) || isAdmin || isPublic);
+                    if (showImmediate) return <div style={{fontSize:15,fontWeight:700,color:"#a78bfa"}}>{contactModal.name||"Nie podano"}</div>;
+                    if (mySlot) return <div style={{fontSize:15,fontWeight:700,color:"#a78bfa"}}>{contactModal.name||"Nie podano"}</div>;
+                    if (isPublic) return <div style={{fontSize:12,color:"#6b7280"}}>Widoczny po dokonaniu rezerwacji</div>;
+                    return (
+                      <div>
+                        <div style={{fontSize:12,color:"#374151",marginBottom:4}}>Widoczny po zatwierdzeniu rezerwacji</div>
+                        {contactModal.phone&&<div style={{fontSize:12,color:"#6b7280"}}>Możesz też zapytać właściciela: <span style={{color:"#a78bfa"}}>{contactModal.phone}</span></div>}
+                      </div>
+                    );
                   })()}
                 </div>
               </div>
