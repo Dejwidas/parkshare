@@ -4,9 +4,13 @@ import { c } from "../styles.js";
 export function Footer() {
   return (
     <div style={{textAlign:"center",padding:"20px 0 8px"}}>
-      <div style={{fontSize:11,color:"#374151"}}>
+      <div style={{fontSize:11,color:"#374151",marginBottom:4}}>
         {"v0.26 · "}
         <a href="mailto:kontakt@parkshare.pl" style={{color:"#4b5563",textDecoration:"none"}}>kontakt@parkshare.pl</a>
+      </div>
+      <div style={{fontSize:10,color:"#374151"}}>
+        {"Korzystając z aplikacji akceptujesz "}
+        <a href="/regulamin.html" target="_blank" style={{color:"#6b7280",textDecoration:"underline"}}>regulamin</a>
       </div>
     </div>
   );

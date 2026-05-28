@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://parkshare.pl/sitemap.xml
