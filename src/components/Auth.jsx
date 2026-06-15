@@ -35,18 +35,18 @@ export function AuthScreen({ onAuth }) {
     }finally{setLoading(false);}
   }
 
-  async function sendReset() {
+async function sendReset() {
   if(!email.trim()){setErr("Podaj adres e-mail.");return;}
   setLoading(true);setErr("");
   try{
-    await fetch("https://rbpnmvzggshgytzascqz.supabase.co/auth/v1/recover",{
+    var redirectTo = encodeURIComponent("https://www.parkshare.pl/reset-password.html");
+    await fetch("https://rbpnmvzggshgytzascqz.supabase.co/auth/v1/recover?redirect_to="+redirectTo,{
       method:"POST",
-      headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicG5tdnpnZ3NoZ3l0emFzY3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzE2MDAsImV4cCI6MjA5MzA0NzYwMH0.ahtUVzG2CDbagn8PtO4keBrey1NtbIKVcZHDQsq8vjc"},
-      body:JSON.stringify({
-        email:email.trim(),
-        redirect_to: "https://www.parkshare.pl/reset-password.html"
-    })
-      
+      headers:{
+        "Content-Type":"application/json",
+        "apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicG5tdnpnZ3NoZ3l0emFzY3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzE2MDAsImV4cCI6MjA5MzA0NzYwMH0.ahtUVzG2CDbagn8PtO4keBrey1NtbIKVcZHDQsq8vjc"
+      },
+      body: JSON.stringify({ email: email.trim() })
     });
     setMode("reset-sent");
   }catch(e){setErr("Blad: "+e.message);}
