@@ -42,7 +42,11 @@ export function AuthScreen({ onAuth }) {
     await fetch("https://rbpnmvzggshgytzascqz.supabase.co/auth/v1/recover",{
       method:"POST",
       headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicG5tdnpnZ3NoZ3l0emFzY3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzE2MDAsImV4cCI6MjA5MzA0NzYwMH0.ahtUVzG2CDbagn8PtO4keBrey1NtbIKVcZHDQsq8vjc"},
-      body:JSON.stringify({email:email.trim()})
+      body:JSON.stringify({
+        email:email.trim(),
+        redirect_to: "https://parkshare.pl/reset-password.html"
+    })
+      
     });
     setMode("reset-sent");
   }catch(e){setErr("Blad: "+e.message);}
