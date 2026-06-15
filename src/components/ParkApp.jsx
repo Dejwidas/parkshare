@@ -5,19 +5,20 @@ import { f, today, DAYS_SHORT, DAYS_PL, MONTHS_FULL, CANCEL_WINDOW_MS } from "..
 import { ParkLogo, ConfirmDialog, Spinner } from "./UI.jsx";
 import { GroupSwitcher } from "./GroupSwitcher.jsx";
 import { AdminPanel } from "./AdminPanel.jsx";
+import { UserMenu, AccountSettingsView } from "./AccountSettings.jsx";
 
 
-function ShareModal({ group, onClose }) {
+function InviteModal({ group, onClose }) {
   var [copied,setCopied] = useState(false);
   var [copiedAll,setCopiedAll] = useState(false);
-  var msg = "Dolacz do grupy "+group.name+" na ParkShare! Adres: https://parkshare.pl Kod grupy: "+group.id;
+  var msg = "Dołącz do grupy "+group.name+" na ParkShare! Adres: https://parkshare.pl Kod grupy: "+group.id;
   function copyCode(){navigator.clipboard&&navigator.clipboard.writeText(group.id).catch(function(){});setCopied(true);setTimeout(function(){setCopied(false);},2000);}
   function copyAll(){navigator.clipboard&&navigator.clipboard.writeText(msg).catch(function(){});setCopiedAll(true);setTimeout(function(){setCopiedAll(false);},2000);}
   return (
     <div style={c.overlay} onClick={onClose}>
       <div style={c.modal} onClick={function(e){e.stopPropagation();}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-          <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>Udostepnij grupe</div>
+          <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>Zaproś do grupy</div>
           <button style={{...c.btn(),padding:"4px 10px",fontSize:12}} onClick={onClose}>X</button>
         </div>
         <div style={{fontSize:12,color:"#6b7280",marginBottom:16}}>{group.name}</div>
@@ -26,10 +27,10 @@ function ShareModal({ group, onClose }) {
           <span style={{flex:1,fontWeight:700,color:"#a78bfa",fontSize:16}}>{group.id}</span>
           <button style={{...c.btn(copied?"success":"primary"),padding:"5px 10px",fontSize:12,flexShrink:0}} onClick={copyCode}>{copied?"Skopiowano":"Kopiuj kod"}</button>
         </div>
-        <label style={c.label}>Gotowa wiadomosc</label>
+        <label style={c.label}>Gotowa wiadomość</label>
         <div style={{background:"#0f1117",border:"1px solid #2a2d3e",borderRadius:8,padding:"10px 12px",fontSize:12,color:"#9ca3af",lineHeight:1.7,marginBottom:10}}>{msg}</div>
-        <button style={{...c.btn(copiedAll?"success":"default"),width:"100%",marginBottom:16}} onClick={copyAll}>{copiedAll?"Skopiowano":"Kopiuj wiadomosc"}</button>
-        <div style={{background:"#0d2a1e",border:"1px solid #065f46",borderRadius:8,padding:"10px 12px",fontSize:12,color:"#6ee7b7"}}>Wyslij kod na grupe osiedlowa — kazda osoba wchodzi na parkshare.pl i wpisuje kod zeby dolaczyc.</div>
+        <button style={{...c.btn(copiedAll?"success":"default"),width:"100%",marginBottom:16}} onClick={copyAll}>{copiedAll?"Skopiowano":"Kopiuj wiadomość"}</button>
+        <div style={{background:"#0d2a1e",border:"1px solid #065f46",borderRadius:8,padding:"10px 12px",fontSize:12,color:"#6ee7b7"}}>Wyślij kod na grupę osiedlową — każda osoba wchodzi na parkshare.pl i wpisuje kod żeby dołączyć.</div>
       </div>
     </div>
   );
@@ -62,7 +63,7 @@ export function ParkApp({ groupId, user, onLeave, onSwitchGroup, onNew }) {
   var [calY,setCalY] = useState(today.getFullYear());
   var [calM,setCalM] = useState(today.getMonth());
   var [multiDates,setMultiDates] = useState([]);
-  var [showShare,setShowShare] = useState(false);
+  var [showInvite,setShowInvite] = useState(false);
   var [showAdmin,setShowAdmin] = useState(false);
   var [editSpotModal,setEditSpotModal] = useState(null);
   var [editSlotModal, setEditSlotModal] = useState(null);
@@ -101,10 +102,8 @@ export function ParkApp({ groupId, user, onLeave, onSwitchGroup, onNew }) {
   function hasConflict(spotId, dateKey) {
   var existing = slotsForSpot(spotId).filter(function(sl){return sl.date===dateKey;});
   if(!existing.length) return false;
-  // Jeśli dodajemy "cały dzień" lub istniejący slot to "cały dzień" — konflikt
   if(slotForm.allDay) return true;
   if(existing.some(function(sl){return sl.all_day;})) return true;
-  // Sprawdź nakładanie godzin
   var newFrom = f.timeToMin(slotForm.from);
   var newTo = f.timeToMin(slotForm.to);
   return existing.some(function(sl){
@@ -135,58 +134,76 @@ export function ParkApp({ groupId, user, onLeave, onSwitchGroup, onNew }) {
       await sb.from("spots").insert({id:f.genId(),group_id:groupId,name:newSpot.name.trim(),desc:newSpot.desc,owner:newSpot.owner,owner_uid:user.uid,phone:newSpot.phone,email:newSpot.email,note:newSpot.note,type:newSpot.type,spot_visibility:newSpot.spotVisibility});
       setNewSpot({name:"",desc:"",owner:user.guest?"":user.name,phone:"",email:"",note:"",type:"underground",spotVisibility:"private"});
       setShowAdd(false); showToast("Miejsce dodane!"); loadAll();
-    }catch(e){showToast("Blad: "+e.message,"error");}
+    }catch(e){showToast("Błąd: "+e.message,"error");}
   }
 
   async function updateField(spotId,field,val){
     try{await sb.from("spots").update({[field]:val},"?id=eq."+spotId);loadAll();}catch(e){}
   }
 
+  async function saveEditedSpot(spotId, data) {
+    try {
+      await sb.from("spots").update({
+        name: data.name,
+        desc: data.desc,
+        owner: data.owner,
+        phone: data.phone,
+        email: data.email,
+        note: data.note,
+        type: data.type,
+        spot_visibility: data.spotVisibility
+      }, "?id=eq."+spotId);
+      setEditSpotModal(null);
+      showToast("Miejsce zaktualizowane!");
+      loadAll();
+    } catch(e){ showToast("Błąd: "+e.message,"error"); }
+  }
+
   async function removeSpot(spotId,spotName){
-    confirm("Czy na pewno chcesz usunac miejsce nr "+spotName+"? Ta akcja usunie rowniez wszystkie terminy.", async function(){
+    confirm("Czy na pewno chcesz usunąć miejsce nr "+spotName+"? Ta akcja usunie również wszystkie terminy.", async function(){
       try{
         var ss = slotsForSpot(spotId);
         for(var i=0;i<ss.length;i++) await sb.from("slots").delete("?id=eq."+ss[i].id);
         await sb.from("spots").delete("?id=eq."+spotId);
-        showToast("Miejsce usuniete.","warn"); loadAll();
-      }catch(e){showToast("Blad: "+e.message,"error");}
+        showToast("Miejsce usunięte.","warn"); loadAll();
+      }catch(e){showToast("Błąd: "+e.message,"error");}
     });
   }
 
   async function addSlots(spotId){
     if(!multiDates.length||!spotId) return;
     var conflicts=multiDates.filter(function(d){return hasConflict(spotId,d,slotForm);});
-    if(conflicts.length>0){showToast("Wybrany termin juz istnieje dla tego miejsca.","error");return;}
+    if(conflicts.length>0){showToast("Wybrany termin już istnieje dla tego miejsca.","error");return;}
     var price = parseFloat(slotForm.price)||0;
     try{
       var rows = multiDates.map(function(d){return {id:f.genId(),spot_id:spotId,date:d,all_day:slotForm.allDay,from_time:slotForm.allDay?"00:00":slotForm.from,to_time:slotForm.allDay?"24:00":slotForm.to,price};});
       await sb.from("slots").insert(rows);
-      setMultiDates([]); showToast("Dodano "+multiDates.length+" terminow!"); loadAll();
-    }catch(e){showToast("Blad: "+e.message,"error");}
+      setMultiDates([]); showToast("Dodano "+multiDates.length+" terminów!"); loadAll();
+    }catch(e){showToast("Błąd: "+e.message,"error");}
   }
 
   async function removeSlot(id){
-    confirm("Czy na pewno chcesz usunac ten termin?", async function(){
+    confirm("Czy na pewno chcesz usunąć ten termin?", async function(){
       try{await sb.from("slots").delete("?id=eq."+id);loadAll();}catch(e){}
     });
   }
 
   async function cancelBooking(id){
-    confirm("Czy na pewno chcesz anulowac te rezerwacje?", async function(){
+    confirm("Czy na pewno chcesz anulować tę rezerwację?", async function(){
       try{
         await sb.from("slots").update({booked:false,booked_by:null,booker_phone:null,booked_at:null,booked_by_uid:null},"?id=eq."+id);
         showToast("Rezerwacja anulowana.","warn"); loadAll();
       }catch(e){}
     });
   }
-  
+
   async function acceptBooking(id) {
-  try {
-    await sb.from("slots").update({booked_at: Date.now() - CANCEL_WINDOW_MS}, "?id=eq." + id);
-    showToast("Rezerwacja zatwierdzona!", "success");
-    loadAll();
-  } catch(e) { showToast("Blad: " + e.message, "error"); }
-}
+    try {
+      await sb.from("slots").update({booked_at: Date.now() - CANCEL_WINDOW_MS}, "?id=eq." + id);
+      showToast("Rezerwacja zatwierdzona!", "success");
+      loadAll();
+    } catch(e) { showToast("Błąd: " + e.message, "error"); }
+  }
 
   async function cancelBookingDirect(id){
     try{
@@ -200,22 +217,22 @@ export function ParkApp({ groupId, user, onLeave, onSwitchGroup, onNew }) {
     try{
       await sb.from("slots").update({booked:true,booked_by:bookerName,booker_phone:bookerPhone,booked_at:Date.now(),booked_by_uid:user.uid},"?id=eq."+bookModal.slotId);
       setBookModal(null); setBookerName(user.guest?"":user.name); setBookerPhone(""); showToast("Rezerwacja potwierdzona!"); loadAll();
-    }catch(e){showToast("Blad: "+e.message,"error");}
+    }catch(e){showToast("Błąd: "+e.message,"error");}
   }
 
-async function saveEditedSlot(slotId, data) {
-  try {
-    await sb.from("slots").update({
-      all_day: data.allDay,
-      from_time: data.allDay ? "00:00" : data.from,
-      to_time: data.allDay ? "24:00" : data.to,
-      price: parseFloat(data.price) || 0
-    }, "?id=eq." + slotId);
-    setEditSlotModal(null);
-    showToast("Termin zaktualizowany!");
-    loadAll();
-  } catch(e) { showToast("Blad: " + e.message, "error"); }
-}
+  async function saveEditedSlot(slotId, data) {
+    try {
+      await sb.from("slots").update({
+        all_day: data.allDay,
+        from_time: data.allDay ? "00:00" : data.from,
+        to_time: data.allDay ? "24:00" : data.to,
+        price: parseFloat(data.price) || 0
+      }, "?id=eq." + slotId);
+      setEditSlotModal(null);
+      showToast("Termin zaktualizowany!");
+      loadAll();
+    } catch(e) { showToast("Błąd: " + e.message, "error"); }
+  }
 
   function SlotCal({ spotId }) {
     var dim=f.daysInMonth(calY,calM), first=f.firstDay(calY,calM);
@@ -238,16 +255,18 @@ async function saveEditedSlot(slotId, data) {
             var has=editSlots.some(function(sl){return sl.date===k;});
             var conflict=spotId&&!sel&&hasConflict(spotId,k,slotForm);
 var blockClick=conflict&&slotForm.allDay;
-return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick?"Ten dzien juz ma termin calodniowy":""} onClick={function(){if(!past&&!blockClick) toggleMulti(k);}}>{day}</div>;
+return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick?"Ten dzień już ma termin całodniowy":""} onClick={function(){if(!past&&!blockClick) toggleMulti(k);}}>{day}</div>;
           })}
         </div>
         {multiDates.length>0&&<div style={{fontSize:11,color:"#a78bfa",marginTop:8}}>Zaznaczono {multiDates.length} dni</div>}
-        <div style={{fontSize:11,color:"#4b5563",marginTop:6}}>Czerwone dni — istniejacy termin (konflikt)</div>
+        <div style={{fontSize:11,color:"#4b5563",marginTop:6}}>Czerwone dni — istniejący termin (konflikt)</div>
       </div>
     );
   }
 
   if(loading||!group) return <div style={{...c.app,display:"flex",alignItems:"center",justifyContent:"center"}}><Spinner/></div>;
+
+  if(view==="account") return <AccountSettingsView user={user} onBack={function(){setView("browse");}}/>;
 
   var isToday = f.isSameDay(selDate,today);
   var browseSpots = spots.map(function(sp){return {...sp,todaySlots:slotsOn(sp.id,dk)};}).filter(function(sp){return sp.todaySlots.length>0;});
@@ -258,7 +277,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
       <div style={c.hdr}>
         <GroupSwitcher groupId={groupId} groupName={group.name} user={user} onJoin={onSwitchGroup} onNew={onNew}/>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
-          <button style={c.navBtn(view==="browse")} onClick={function(){setView("browse");setSelDate(new Date(today));setWeekOffset(0);}}>Przegladaj</button>
+          <button style={c.navBtn(view==="browse")} onClick={function(){setView("browse");setSelDate(new Date(today));setWeekOffset(0);}}>Przeglądaj</button>
           {!user.guest&&(
             <button style={{...c.navBtn(view==="myspots"),position:"relative"}} onClick={function(){setView("myspots");}}>
               Moje miejsca
@@ -266,9 +285,8 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
             </button>
           )}
           {isAdmin&&<button style={{...c.btn("admin"),padding:"6px 10px",fontSize:12}} onClick={function(){setShowAdmin(true);}}>Admin</button>}
-          <button style={{...c.btn("ghost"),padding:"6px 10px",fontSize:12,border:"1px solid #2a2d3e",borderRadius:8}} onClick={function(){setShowShare(true);}}>Udostepnij</button>
-          <div style={c.avatar} title={user.name}>{user.name[0].toUpperCase()}</div>
-          <button style={{...c.btn("default"),padding:"6px 10px",fontSize:12}} onClick={onLeave}>zmien</button>
+          <button style={{...c.btn("ghost"),padding:"6px 10px",fontSize:12,border:"1px solid #2a2d3e",borderRadius:8}} onClick={function(){setShowInvite(true);}}>Zaproś</button>
+          <UserMenu user={user} onOpenSettings={function(){setView("account");}} onLogout={onLeave}/>
         </div>
       </div>
 
@@ -282,7 +300,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                   var cnt=spotsAvailOn(f.dateKey(d)), act=f.isSameDay(d,selDate);
                   return (
                     <div key={i} style={c.weekCell(act,cnt)} onClick={function(){setSelDate(new Date(d));}}>
-                      <div style={{fontSize:10,color:act?"#e8eaf0":"#6b7280",marginBottom:2}}>{f.isSameDay(d,today)?"Dzis":DAYS_SHORT[(d.getDay()+6)%7]}</div>
+                      <div style={{fontSize:10,color:act?"#e8eaf0":"#6b7280",marginBottom:2}}>{f.isSameDay(d,today)?"Dziś":DAYS_SHORT[(d.getDay()+6)%7]}</div>
                       <div style={{fontSize:13,fontWeight:600,color:act?"#fff":"#9ca3af"}}>{d.getDate()}</div>
                       {cnt>0&&<div style={{fontSize:10,color:act?"#c4b5fd":"#6ee7b7",marginTop:2}}>{cnt} wol.</div>}
                     </div>
@@ -299,12 +317,12 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
               </div>
               <button style={c.arrow} onClick={function(){setSelDate(function(d){return f.addDays(d,1);});}}>{">"}</button>
             </div>
-            {user.guest&&<div style={{background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#6b7280"}}>Przegladasz jako gosc. <span style={{color:"#a78bfa",cursor:"pointer"}} onClick={onLeave}>Zaloguj sie</span>, aby dodawac miejsca.</div>}
+            {user.guest&&<div style={{background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#6b7280"}}>Przeglądasz jako gość. <span style={{color:"#a78bfa",cursor:"pointer"}} onClick={onLeave}>Zaloguj się</span>, aby dodawać miejsca.</div>}
             {browseSpots.length===0?(
               <div style={{textAlign:"center",padding:"40px 20px"}}>
                 <div style={{marginBottom:16,display:"flex",justifyContent:"center"}}><ParkLogo size={48}/></div>
                 <div style={{fontSize:14,fontWeight:500,color:"#6b7280"}}>Brak wolnych miejsc tego dnia</div>
-                <div style={{fontSize:12,color:"#374151",marginTop:6}}>Spróbuj innego dnia lub wróc pozniej</div>
+                <div style={{fontSize:12,color:"#374151",marginTop:6}}>Spróbuj innego dnia lub wróć później</div>
               </div>
             ):browseSpots.map(function(sp){return(
               <div key={sp.id} style={c.card(false)}>
@@ -313,11 +331,11 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
                       <span style={{fontSize:20}}>{sp.type==="outdoor"?"🌤":"🏗"}</span>
                       <div>
-                        <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>{sp.type==="outdoor"?"Miejsce naziemne":"Garaz podziemny"}</div>
+                        <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>{sp.type==="outdoor"?"Miejsce naziemne":"Garaż podziemny"}</div>
                         <div style={{fontSize:12,color:"#6b7280"}}>{sp.desc}</div>
                       </div>
                     </div>
-                    <div style={{fontSize:11,color:"#4b5563"}}>Wlasciciel: {sp.owner||"—"}</div>
+                    <div style={{fontSize:11,color:"#4b5563"}}>Właściciel: {sp.owner||"—"}</div>
                   </div>
                   <button style={{...c.btn("primary"),padding:"6px 12px",fontSize:12}} onClick={function(){setContactModal(sp);}}>Kontakt i nr</button>
                 </div>
@@ -326,13 +344,13 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                 {sp.todaySlots.map(function(sl){return(
                   <div key={sl.id} style={{...c.slotRow,opacity:sl.booked?0.55:1}}>
                     <div>
-                      <div style={{fontSize:13,fontWeight:500,color:sl.booked?"#818cf8":"#e8eaf0"}}>{sl.all_day?"Caly dzien":sl.from_time+" – "+sl.to_time}</div>
-                      <div style={{fontSize:12,color:sl.price===0?"#6ee7b7":"#a78bfa",marginTop:2}}>{sl.booked?"Zarezerwowane: "+sl.booked_by:sl.price===0?"Bezplatnie":sl.price+" zl"}</div>
+                      <div style={{fontSize:13,fontWeight:500,color:sl.booked?"#818cf8":"#e8eaf0"}}>{sl.all_day?"Cały dzień":sl.from_time+" – "+sl.to_time}</div>
+                      <div style={{fontSize:12,color:sl.price===0?"#6ee7b7":"#a78bfa",marginTop:2}}>{sl.booked?"Zarezerwowane: "+sl.booked_by:sl.price===0?"Bezpłatnie":sl.price+" zł"}</div>
                     </div>
                     <div style={{display:"flex",gap:6}}>
                       {!sl.booked&&<button style={{...c.btn("ghost"),padding:"6px 12px",fontSize:12,border:"1px solid #2a2d3e"}} onClick={function(){setBookModal({spotId:sp.id,slotId:sl.id,sl,sp,dk});}}>Zarezerwuj</button>}
                       {sl.booked&&sl.booked_by_uid===user.uid&&f.canCancel(sl.booked_at)&&(
-                        <button style={{...c.btn("warn"),padding:"6px 12px",fontSize:12}} onClick={function(){confirm("Czy na pewno chcesz anulowac swoja rezerwacje?",async function(){await cancelBookingDirect(sl.id);});}}>Anuluj</button>
+                        <button style={{...c.btn("warn"),padding:"6px 12px",fontSize:12}} onClick={function(){confirm("Czy na pewno chcesz anulować swoją rezerwację?",async function(){await cancelBookingDirect(sl.id);});}}>Anuluj</button>
                       )}
                     </div>
                   </div>
@@ -351,27 +369,27 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
 
             {pendingBookings.length>0&&(
               <div style={{background:"#1c1200",border:"1px solid #fbbf24",borderRadius:10,padding:"12px 14px",marginBottom:16}}>
-                <div style={{fontSize:12,fontWeight:600,color:"#fbbf24",marginBottom:8}}>Nowe rezerwacje oczekujace ({pendingBookings.length})</div>
+                <div style={{fontSize:12,fontWeight:600,color:"#fbbf24",marginBottom:8}}>Nowe rezerwacje oczekujące ({pendingBookings.length})</div>
                 {pendingBookings.map(function(sl){return(
                   <div key={sl.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid #2a1800"}}>
                     <div>
                       <div style={{fontSize:12,color:"#e8eaf0"}}>Miejsce nr {sl.spotName} · {f.fmtDate(f.parseDate(sl.date))}</div>
-                      <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>{sl.booked_by}{sl.booker_phone?" · "+sl.booker_phone:""} · pozostalo {f.timeLeft(sl.booked_at)}</div>
+                      <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>{sl.booked_by}{sl.booker_phone?" · "+sl.booker_phone:""} · pozostało {f.timeLeft(sl.booked_at)}</div>
                     </div>
                     <div style={{display:"flex",gap:6}}>
-  <button style={{...c.btn("success"),padding:"4px 10px",fontSize:11}} onClick={function(){acceptBooking(sl.id);}}>Zatwierdz</button>
+  <button style={{...c.btn("success"),padding:"4px 10px",fontSize:11}} onClick={function(){acceptBooking(sl.id);}}>Zatwierdź</button>
   <button style={{...c.btn("danger"),padding:"4px 10px",fontSize:11}} onClick={function(){cancelBooking(sl.id);}}>Anuluj</button>
 </div>
                   </div>
                 );})}
-                <div style={{fontSize:11,color:"#6b7280",marginTop:8}}>Jesli nie anulujesz w ciagu godziny, rezerwacja zostanie automatycznie zatwierdzona.</div>
+                <div style={{fontSize:11,color:"#6b7280",marginTop:8}}>Jeśli nie anulujesz w ciągu godziny, rezerwacja zostanie automatycznie zatwierdzona.</div>
               </div>
             )}
 
             {showAdd&&(
               <div style={{...c.card(true),marginBottom:20}}>
                 <div style={{fontSize:13,fontWeight:600,color:"#c4b5fd",marginBottom:14}}>Nowe miejsce</div>
-                {[["name","Numer miejsca","np. A-15"],["desc","Opis (opcjonalnie)","np. poziom -1"],["owner","Imie i nazwisko (opcjonalnie)","np. Jan Kowalski"]].map(function(row){
+                {[["name","Numer miejsca","np. A-15"],["desc","Opis (opcjonalnie)","np. poziom -1"],["owner","Imię i nazwisko (opcjonalnie)","np. Jan Kowalski"]].map(function(row){
                   var fld=row[0],l=row[1],p=row[2];
                   return <div key={fld} style={{marginBottom:10}}><label style={c.label}>{l}</label><input style={c.input} placeholder={p} value={newSpot[fld]} onChange={function(e){var v=e.target.value;setNewSpot(function(prev){return {...prev,[fld]:v};});setNewSpotErr("");}}/></div>;
                 })}
@@ -381,22 +399,22 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                 <div style={{marginBottom:10}}>
                   <label style={c.label}>Rodzaj miejsca</label>
                   <div style={{display:"flex",gap:8}}>
-                    {[["underground","Garaz podziemny"],["outdoor","Naziemne"]].map(function(row){return <button key={row[0]} style={{...c.btn(newSpot.type===row[0]?"primary":"default"),flex:1,fontSize:12}} onClick={function(){setNewSpot(function(p){return {...p,type:row[0]};});}}>{row[1]}</button>;})}
+                    {[["underground","Garaż podziemny"],["outdoor","Naziemne"]].map(function(row){return <button key={row[0]} style={{...c.btn(newSpot.type===row[0]?"primary":"default"),flex:1,fontSize:12}} onClick={function(){setNewSpot(function(p){return {...p,type:row[0]};});}}>{row[1]}</button>;})}
                   </div>
                 </div>
                 <div style={{marginBottom:10}}>
-                  <label style={c.label}>Widocznosc numeru miejsca</label>
+                  <label style={c.label}>Widoczność numeru miejsca</label>
                   <div style={{display:"flex",gap:8}}>
                     <button style={{...c.btn(newSpot.spotVisibility==="public"?"primary":"default"),flex:1,fontSize:12}} onClick={function(){setNewSpot(function(p){return {...p,spotVisibility:"public"};});}}>Jawne (od razu)</button>
                     <button style={{...c.btn(newSpot.spotVisibility==="private"?"primary":"default"),flex:1,fontSize:12}} onClick={function(){setNewSpot(function(p){return {...p,spotVisibility:"private"};});}}>Ukryte (po zatwierdzeniu)</button>
                   </div>
                 </div>
-                <div style={{marginBottom:14}}><label style={c.label}>Notatka / platnosc</label><textarea style={c.textarea} placeholder="np. Preferuje BLIK..." value={newSpot.note} onChange={function(e){var v=e.target.value;setNewSpot(function(p){return {...p,note:v};});}}/></div>
+                <div style={{marginBottom:14}}><label style={c.label}>Notatka / płatność</label><textarea style={c.textarea} placeholder="np. Preferuję BLIK..." value={newSpot.note} onChange={function(e){var v=e.target.value;setNewSpot(function(p){return {...p,note:v};});}}/></div>
                 <div style={{display:"flex",gap:8}}><button style={c.btn("primary")} onClick={addSpot}>Dodaj</button><button style={c.btn()} onClick={function(){setShowAdd(false);}}>Anuluj</button></div>
               </div>
             )}
 
-            {spots.filter(isOwner).length===0&&!showAdd&&<div style={{textAlign:"center",padding:"30px 0",color:"#4b5563",fontSize:13}}>Nie masz jeszcze zadnych miejsc.</div>}
+            {spots.filter(isOwner).length===0&&!showAdd&&<div style={{textAlign:"center",padding:"30px 0",color:"#4b5563",fontSize:13}}>Nie masz jeszcze żadnych miejsc.</div>}
 
             {spots.filter(isOwner).map(function(sp){
               var spSlots = slotsForSpot(sp.id);
@@ -406,7 +424,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                     <div>
                       <div style={{display:"flex",alignItems:"center",gap:6}}>
-                        <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>{sp.type==="outdoor"?"🌤 Naziemne":"🏗 Garaz"} · nr {sp.name}</div>
+                        <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>{sp.type==="outdoor"?"🌤 Naziemne":"🏗 Garaż"} · nr {sp.name}</div>
                         {hasPending&&<span style={c.newBadge}>! Nowa rezerwacja</span>}
                       </div>
                       <div style={{fontSize:12,color:"#6b7280",marginTop:2}}>{sp.desc||"Brak opisu"}</div>
@@ -416,13 +434,13 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                         {editingSpotId===sp.id?"Zamknij":"+ Termin"}
                       </button>
                       <button style={c.btn("default")} onClick={function(){setEditSpotModal({id:sp.id,name:sp.name||"",desc:sp.desc||"",owner:sp.owner||"",phone:sp.phone||"",email:sp.email||"",note:sp.note||"",type:sp.type||"underground",spotVisibility:sp.spot_visibility||"private"});}}>Edytuj</button>
-                      <button style={c.btn("danger")} onClick={function(){removeSpot(sp.id,sp.name);}}>Usun</button>
+                      <button style={c.btn("danger")} onClick={function(){removeSpot(sp.id,sp.name);}}>Usuń</button>
                     </div>
                   </div>
 
                   <div style={{background:"#0f1117",borderRadius:10,padding:12,marginBottom:12}}>
                     <div style={{fontSize:11,fontWeight:600,color:"#6b7280",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.5px"}}>Dane kontaktowe</div>
-                    {[["owner","Imie i nazwisko","np. Jan Kowalski"],["email","E-mail","np. jan@email.com"]].map(function(row){
+                    {[["owner","Imię i nazwisko","np. Jan Kowalski"],["email","E-mail","np. jan@email.com"]].map(function(row){
                       var fld=row[0],l=row[1],p=row[2];
                       return <div key={fld} style={{marginBottom:8}}><label style={c.label}>{l}</label><input style={c.input} placeholder={p} value={sp[fld]||""} onBlur={function(e){updateField(sp.id,fld,e.target.value);}} onChange={function(e){var v=e.target.value;setSpots(function(prev){return prev.map(function(s){return s.id===sp.id?{...s,[fld]:v}:s;});});}}/></div>;
                     })}
@@ -430,19 +448,19 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                       <label style={c.label}>Telefon</label>
                       <input style={c.input} placeholder="np. +48 600 123 456" value={sp.phone||""} onBlur={function(e){updateField(sp.id,"phone",e.target.value);}} onChange={function(e){var v=e.target.value.replace(/[^0-9+\s\-]/g,"");setSpots(function(prev){return prev.map(function(s){return s.id===sp.id?{...s,phone:v}:s;});});}}/>
                     </div>
-                    <label style={c.label}>Notatka / platnosc</label>
-                    <textarea style={c.textarea} placeholder="np. Preferuje BLIK..." value={sp.note||""} onBlur={function(e){updateField(sp.id,"note",e.target.value);}} onChange={function(e){var v=e.target.value;setSpots(function(prev){return prev.map(function(s){return s.id===sp.id?{...s,note:v}:s;});});}}/>
+                    <label style={c.label}>Notatka / płatność</label>
+                    <textarea style={c.textarea} placeholder="np. Preferuję BLIK..." value={sp.note||""} onBlur={function(e){updateField(sp.id,"note",e.target.value);}} onChange={function(e){var v=e.target.value;setSpots(function(prev){return prev.map(function(s){return s.id===sp.id?{...s,note:v}:s;});});}}/>
                   </div>
 
                   {editingSpotId===sp.id&&(
                     <div style={{background:"#0f1117",borderRadius:10,padding:14,marginBottom:14}}>
-                      <div style={{fontSize:12,fontWeight:600,color:"#a78bfa",marginBottom:12}}>Wybierz dni dostepnosci</div>
+                      <div style={{fontSize:12,fontWeight:600,color:"#a78bfa",marginBottom:12}}>Wybierz dni dostępności</div>
                       <SlotCal spotId={sp.id}/>
                       <div style={{marginTop:14,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                         <div style={{gridColumn:"1/-1"}}>
                           <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#9ca3af",cursor:"pointer"}}>
                             <input type="checkbox" checked={slotForm.allDay} onChange={function(e){var v=e.target.checked;setSlotForm(function(p){return {...p,allDay:v};});}} style={{accentColor:"#7c3aed"}}/>
-                            Caly dzien
+                            Cały dzień
                           </label>
                         </div>
                         {!slotForm.allDay&&(
@@ -451,10 +469,10 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                             <div><label style={c.label}>Do</label><input type="time" style={c.input} value={slotForm.to} onChange={function(e){var v=e.target.value;setSlotForm(function(p){return {...p,to:v};});}}/></div>
                           </>
                         )}
-                        <div style={{gridColumn:"1/-1"}}><label style={c.label}>Cena (zl), 0 = bezplatnie</label><input type="number" min="0" style={c.input} value={slotForm.price} onChange={function(e){var v=e.target.value;setSlotForm(function(p){return {...p,price:v};});}}/></div>
+                        <div style={{gridColumn:"1/-1"}}><label style={c.label}>Cena (zł), 0 = bezpłatnie</label><input type="number" min="0" style={c.input} value={slotForm.price} onChange={function(e){var v=e.target.value;setSlotForm(function(p){return {...p,price:v};});}}/></div>
                       </div>
                       <button style={{...c.btn("primary"),marginTop:14,width:"100%",opacity:multiDates.length?1:0.4}} onClick={function(){addSlots(sp.id);}} disabled={!multiDates.length}>
-                        Dodaj {multiDates.length>0?(multiDates.length+" terminow"):"terminy"}
+                        Dodaj {multiDates.length>0?(multiDates.length+" terminów"):"terminy"}
                       </button>
                     </div>
                   )}
@@ -468,7 +486,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                           <div key={sl.id} style={{...c.slotRow,background:canCancel?"#1c1200":"#0f1117",border:canCancel?"1px solid #fbbf2444":"none"}}>
                             <div style={{flex:1,minWidth:0}}>
                               <div style={{fontSize:12,fontWeight:500,color:"#e8eaf0"}}>{f.fmtDate(f.parseDate(sl.date))}</div>
-                              <div style={{fontSize:12,color:"#6b7280",marginTop:2}}>{sl.all_day?"Caly dzien":(sl.from_time+"–"+sl.to_time)} · {sl.price===0?"Bezplatnie":(sl.price+" zl")}</div>
+                              <div style={{fontSize:12,color:"#6b7280",marginTop:2}}>{sl.all_day?"Cały dzień":(sl.from_time+"–"+sl.to_time)} · {sl.price===0?"Bezpłatnie":(sl.price+" zł")}</div>
                               {sl.booked&&(
                                 <div style={{fontSize:11,color:canCancel?"#fbbf24":"#818cf8",marginTop:2}}>
                                   {sl.booked_by}{sl.booker_phone?" · "+sl.booker_phone:""}
@@ -477,12 +495,12 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                               )}
                             </div>
 							<div style={{display:"flex",gap:6,flexShrink:0,marginLeft:8}}>
-							  {canCancel&&<button style={{...c.btn("success"),padding:"5px 10px",fontSize:11}} onClick={function(){acceptBooking(sl.id);}}>Zatwierdz</button>}
+							  {canCancel&&<button style={{...c.btn("success"),padding:"5px 10px",fontSize:11}} onClick={function(){acceptBooking(sl.id);}}>Zatwierdź</button>}
 								{canCancel&&<button style={{...c.btn("warn"),padding:"5px 10px",fontSize:11}} onClick={function(){cancelBooking(sl.id);}}>Anuluj rez.</button>}
 							  {!sl.booked&&<button style={{...c.btn("default"),padding:"5px 10px",fontSize:11}} onClick={function(){
 								setEditSlotModal({id:sl.id,allDay:sl.all_day,from:sl.from_time,to:sl.to_time,price:String(sl.price)});
 							  }}>Edytuj</button>}
-							  <button style={{...c.btn("danger"),padding:"5px 10px",fontSize:11}} onClick={function(){removeSlot(sl.id);}}>Usun</button>
+							  <button style={{...c.btn("danger"),padding:"5px 10px",fontSize:11}} onClick={function(){removeSlot(sl.id);}}>Usuń</button>
 							</div>
                           </div>
                         );
@@ -508,13 +526,13 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
           <div style={c.modal} onClick={function(e){e.stopPropagation();}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
               <div>
-                <div style={{fontSize:16,fontWeight:600,color:"#e8eaf0"}}>{contactModal.type==="outdoor"?"Miejsce naziemne":"Garaz podziemny"}</div>
+                <div style={{fontSize:16,fontWeight:600,color:"#e8eaf0"}}>{contactModal.type==="outdoor"?"Miejsce naziemne":"Garaż podziemny"}</div>
                 <div style={{fontSize:12,color:"#6b7280",marginTop:2}}>{contactModal.desc}</div>
               </div>
               <button style={{...c.btn(),padding:"4px 10px",fontSize:12}} onClick={function(){setContactModal(null);}}>X</button>
             </div>
             <div style={{background:"#0f1117",borderRadius:10,padding:12,marginBottom:12}}>
-              {[{label:"Imie i nazwisko",val:contactModal.owner},{label:"Telefon",val:contactModal.phone},{label:"E-mail",val:contactModal.email}].map(function(row){return(
+              {[{label:"Imię i nazwisko",val:contactModal.owner},{label:"Telefon",val:contactModal.phone},{label:"E-mail",val:contactModal.email}].map(function(row){return(
                 <div key={row.label} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:"1px solid #1f2230"}}>
                   <div style={{...c.avatar,width:28,height:28,fontSize:12,background:"#1a1d2e"}}>i</div>
                   <div><div style={{fontSize:11,color:"#4b5563"}}>{row.label}</div><div style={{fontSize:13,color:row.val?"#e8eaf0":"#374151"}}>{row.val||"Nie podano"}</div></div>
@@ -531,12 +549,12 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
                     if(showImmediate) return <div style={{fontSize:15,fontWeight:700,color:"#a78bfa"}}>{contactModal.name||"Nie podano"}</div>;
                     if(mySlot) return <div style={{fontSize:15,fontWeight:700,color:"#a78bfa"}}>{contactModal.name||"Nie podano"}</div>;
                     if(isPublic) return <div style={{fontSize:12,color:"#6b7280"}}>Widoczny po dokonaniu rezerwacji</div>;
-                    return <div><div style={{fontSize:12,color:"#374151",marginBottom:4}}>Numer jest ukryty — pojawi sie po zatwierdzeniu rezerwacji.</div>{contactModal.phone&&<div style={{fontSize:12,color:"#6b7280",marginTop:4}}>Mozesz zapytac wlasciciela: <span style={{color:"#a78bfa"}}>{contactModal.phone}</span></div>}</div>;
+                    return <div><div style={{fontSize:12,color:"#374151",marginBottom:4}}>Numer jest ukryty — pojawi się po zatwierdzeniu rezerwacji.</div>{contactModal.phone&&<div style={{fontSize:12,color:"#6b7280",marginTop:4}}>Możesz zapytać właściciela: <span style={{color:"#a78bfa"}}>{contactModal.phone}</span></div>}</div>;
                   })()}
                 </div>
               </div>
             </div>
-            {contactModal.note&&<div style={c.noteBubble}><span style={{fontSize:11,color:"#6b7280",display:"block",marginBottom:4}}>Notatka wlasciciela</span>{contactModal.note}</div>}
+            {contactModal.note&&<div style={c.noteBubble}><span style={{fontSize:11,color:"#6b7280",display:"block",marginBottom:4}}>Notatka właściciela</span>{contactModal.note}</div>}
           </div>
         </div>
       )}
@@ -546,15 +564,15 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
           <div style={c.modal} onClick={function(e){e.stopPropagation();}}>
             <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0",marginBottom:6}}>Zarezerwuj miejsce</div>
             <div style={{fontSize:13,color:"#6b7280",marginBottom:12}}>
-              {bookModal.sp.type==="outdoor"?"Naziemne":"Garaz"} · {f.fmtDate(f.parseDate(bookModal.dk))}<br/>
-              {bookModal.sl.all_day?"Caly dzien":(bookModal.sl.from_time+"–"+bookModal.sl.to_time)} · {bookModal.sl.price===0?"Bezplatnie":(bookModal.sl.price+" zl")}
+              {bookModal.sp.type==="outdoor"?"Naziemne":"Garaż"} · {f.fmtDate(f.parseDate(bookModal.dk))}<br/>
+              {bookModal.sl.all_day?"Cały dzień":(bookModal.sl.from_time+"–"+bookModal.sl.to_time)} · {bookModal.sl.price===0?"Bezpłatnie":(bookModal.sl.price+" zł")}
             </div>
-            {bookModal.sp.note&&<div style={{...c.noteBubble,marginBottom:14}}><span style={{fontSize:11,color:"#6b7280",display:"block",marginBottom:3}}>Notatka wlasciciela</span>{bookModal.sp.note}</div>}
-            <div style={{background:"#0d2a1e",border:"1px solid #065f46",borderRadius:8,padding:"8px 12px",fontSize:12,color:"#6ee7b7",marginBottom:14}}>Wlasciciel ma 1 godzine na anulowanie. Po tym czasie rezerwacja jest zatwierdzona.</div>
-            <div style={{marginBottom:10}}><label style={c.label}>Twoje imie i nazwisko</label><input style={c.input} value={bookerName} onChange={function(e){setBookerName(e.target.value);}} placeholder="np. Marek Nowak"/></div>
+            {bookModal.sp.note&&<div style={{...c.noteBubble,marginBottom:14}}><span style={{fontSize:11,color:"#6b7280",display:"block",marginBottom:3}}>Notatka właściciela</span>{bookModal.sp.note}</div>}
+            <div style={{background:"#0d2a1e",border:"1px solid #065f46",borderRadius:8,padding:"8px 12px",fontSize:12,color:"#6ee7b7",marginBottom:14}}>Właściciel ma 1 godzinę na anulowanie. Po tym czasie rezerwacja jest zatwierdzona.</div>
+            <div style={{marginBottom:10}}><label style={c.label}>Twoje imię i nazwisko</label><input style={c.input} value={bookerName} onChange={function(e){setBookerName(e.target.value);}} placeholder="np. Marek Nowak"/></div>
             <div style={{marginBottom:16}}><label style={c.label}>Telefon (opcjonalnie)</label>{phoneInput(bookerPhone,setBookerPhone)}</div>
             <div style={{display:"flex",gap:8}}>
-              <button style={c.btn("primary")} onClick={function(){confirm("Czy na pewno chcesz zarezerwowac to miejsce?",doConfirmBook);}}>Zarezerwuj</button>
+              <button style={c.btn("primary")} onClick={function(){confirm("Czy na pewno chcesz zarezerwować to miejsce?",doConfirmBook);}}>Zarezerwuj</button>
               <button style={c.btn()} onClick={function(){setBookModal(null);}}>Anuluj</button>
             </div>
           </div>
@@ -568,7 +586,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
               <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>Edytuj miejsce</div>
               <button style={{...c.btn(),padding:"4px 10px",fontSize:12}} onClick={function(){setEditSpotModal(null);}}>X</button>
             </div>
-            {[["name","Numer miejsca","np. A-15"],["desc","Opis","np. poziom -1"],["owner","Imie i nazwisko","np. Jan Kowalski"],["email","E-mail","np. jan@email.com"]].map(function(row){
+            {[["name","Numer miejsca","np. A-15"],["desc","Opis","np. poziom -1"],["owner","Imię i nazwisko","np. Jan Kowalski"],["email","E-mail","np. jan@email.com"]].map(function(row){
               var fld=row[0],l=row[1],p=row[2];
               return <div key={fld} style={{marginBottom:10}}><label style={c.label}>{l}</label><input style={c.input} placeholder={p} value={editSpotModal[fld]} onChange={function(e){var v=e.target.value;setEditSpotModal(function(prev){return {...prev,[fld]:v};});}}/></div>;
             })}
@@ -576,16 +594,16 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
             <div style={{marginBottom:10}}>
               <label style={c.label}>Rodzaj miejsca</label>
               <div style={{display:"flex",gap:8}}>
-                {[["underground","Garaz podziemny"],["outdoor","Naziemne"]].map(function(row){return <button key={row[0]} style={{...c.btn(editSpotModal.type===row[0]?"primary":"default"),flex:1,fontSize:12}} onClick={function(){setEditSpotModal(function(p){return {...p,type:row[0]};});}}>{row[1]}</button>;})}
+                {[["underground","Garaż podziemny"],["outdoor","Naziemne"]].map(function(row){return <button key={row[0]} style={{...c.btn(editSpotModal.type===row[0]?"primary":"default"),flex:1,fontSize:12}} onClick={function(){setEditSpotModal(function(p){return {...p,type:row[0]};});}}>{row[1]}</button>;})}
               </div>
             </div>
             <div style={{marginBottom:10}}>
-              <label style={c.label}>Widocznosc numeru</label>
+              <label style={c.label}>Widoczność numeru</label>
               <div style={{display:"flex",gap:8}}>
                 {[["public","Jawne"],["private","Ukryte"]].map(function(row){return <button key={row[0]} style={{...c.btn(editSpotModal.spotVisibility===row[0]?"primary":"default"),flex:1,fontSize:12}} onClick={function(){setEditSpotModal(function(p){return {...p,spotVisibility:row[0]};});}}>{row[1]}</button>;})}
               </div>
             </div>
-            <div style={{marginBottom:16}}><label style={c.label}>Notatka / platnosc</label><textarea style={c.textarea} placeholder="np. Preferuje BLIK..." value={editSpotModal.note} onChange={function(e){var v=e.target.value;setEditSpotModal(function(p){return {...p,note:v};});}}/></div>
+            <div style={{marginBottom:16}}><label style={c.label}>Notatka / płatność</label><textarea style={c.textarea} placeholder="np. Preferuję BLIK..." value={editSpotModal.note} onChange={function(e){var v=e.target.value;setEditSpotModal(function(p){return {...p,note:v};});}}/></div>
             <div style={{display:"flex",gap:8}}>
               <button style={{...c.btn("primary"),flex:1}} onClick={function(){saveEditedSpot(editSpotModal.id,editSpotModal);}}>Zapisz zmiany</button>
               <button style={c.btn()} onClick={function(){setEditSpotModal(null);}}>Anuluj</button>
@@ -593,7 +611,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
           </div>
         </div>
       )}
-	  
+
 	  {editSlotModal&&(
   <div style={c.overlay} onClick={function(){setEditSlotModal(null);}}>
     <div style={{...c.modal,maxWidth:320}} onClick={function(e){e.stopPropagation();}}>
@@ -604,7 +622,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
       <div style={{marginBottom:12}}>
         <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#9ca3af",cursor:"pointer"}}>
           <input type="checkbox" checked={editSlotModal.allDay} onChange={function(e){var v=e.target.checked;setEditSlotModal(function(p){return {...p,allDay:v};});}} style={{accentColor:"#7c3aed"}}/>
-          Caly dzien
+          Cały dzień
         </label>
       </div>
       {!editSlotModal.allDay&&(
@@ -614,7 +632,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
         </div>
       )}
       <div style={{marginBottom:16}}>
-        <label style={c.label}>Cena (zl), 0 = bezplatnie</label>
+        <label style={c.label}>Cena (zł), 0 = bezpłatnie</label>
         <input type="number" min="0" style={c.input} value={editSlotModal.price} onChange={function(e){var v=e.target.value;setEditSlotModal(function(p){return {...p,price:v};});}}/>
       </div>
       <div style={{display:"flex",gap:8}}>
@@ -627,7 +645,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
 
 {confirmDialog&&<ConfirmDialog msg={confirmDialog.msg} onConfirm={function(){confirmDialog.onConfirm();setConfirmDialog(null);}} onCancel={function(){setConfirmDialog(null);}}/>}
 {showAdmin&&<AdminPanel groupId={groupId} user={user} spots={spots} slots={slots} onClose={function(){setShowAdmin(false);}} onDataChange={loadAll}/>}
-{showShare&&<ShareModal group={group} onClose={function(){setShowShare(false);}}/>}
+{showInvite&&<InviteModal group={group} onClose={function(){setShowInvite(false);}}/>}
 {toast&&<div style={c.toast(toast.type)}>{toast.msg}</div>}
     </div>
   );

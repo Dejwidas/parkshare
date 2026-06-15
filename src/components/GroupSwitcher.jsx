@@ -33,7 +33,7 @@ export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
       await sb.from("user_groups").upsert({user_id:user.uid,group_id:t,role:"member",user_name:user.name,user_email:user.email},"user_id,group_id");
       setOpen(false);setShowJoinForm(false);setCode("");setErr("");
       onJoin(t);
-    }catch(e){setErr("Blad: "+e.message);}
+    }catch(e){setErr("Błąd: "+e.message);}
   }
 
   async function createNew(){
@@ -83,8 +83,8 @@ export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
           )}
           {!showJoinForm&&!showNewForm&&(
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              <button style={{...c.btn("ghost"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowJoinForm(true);}}>+ Dolacz do grupy (kod)</button>
-              <button style={{...c.btn("default"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowNewForm(true);}}>+ Utworz nowa grupe</button>
+              <button style={{...c.btn("ghost"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowJoinForm(true);}}>+ Dołącz do grupy (kod)</button>
+              <button style={{...c.btn("default"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowNewForm(true);}}>+ Utwórz nową grupę</button>
             </div>
           )}
           {showJoinForm&&(
@@ -92,7 +92,7 @@ export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
               <input style={{...c.input,marginBottom:6,fontSize:13}} placeholder="Wpisz kod grupy" value={code} onChange={function(e){setCode(e.target.value.trim());}}/>
               {err&&<div style={{fontSize:11,color:"#f87171",marginBottom:6}}>{err}</div>}
               <div style={{display:"flex",gap:6}}>
-                <button style={{...c.btn("primary"),flex:1,fontSize:12,padding:"7px"}} onClick={join}>Dolacz</button>
+                <button style={{...c.btn("primary"),flex:1,fontSize:12,padding:"7px"}} onClick={join}>Dołącz</button>
                 <button style={{...c.btn("default"),fontSize:12,padding:"7px"}} onClick={function(){setShowJoinForm(false);setErr("");setCode("");}}>Anuluj</button>
               </div>
             </div>
@@ -101,7 +101,7 @@ export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
             <div>
               <input style={{...c.input,marginBottom:6,fontSize:13}} placeholder="Nazwa osiedla" value={newName} onChange={function(e){setNewName(e.target.value);}}/>
               <div style={{display:"flex",gap:6}}>
-                <button style={{...c.btn("primary"),flex:1,fontSize:12,padding:"7px"}} onClick={createNew}>Utworz</button>
+                <button style={{...c.btn("primary"),flex:1,fontSize:12,padding:"7px"}} onClick={createNew}>Utwórz</button>
                 <button style={{...c.btn("default"),fontSize:12,padding:"7px"}} onClick={function(){setShowNewForm(false);setNewName("");}}>Anuluj</button>
               </div>
             </div>
