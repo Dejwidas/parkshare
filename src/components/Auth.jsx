@@ -35,6 +35,20 @@ export function AuthScreen({ onAuth }) {
     }finally{setLoading(false);}
   }
 
+  async function sendReset() {
+  if(!email.trim()){setErr("Podaj adres e-mail.");return;}
+  setLoading(true);setErr("");
+  try{
+    await fetch("https://rbpnmvzggshgytzascqz.supabase.co/auth/v1/recover",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicG5tdnpnZ3NoZ3l0emFzY3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzE2MDAsImV4cCI6MjA5MzA0NzYwMH0.ahtUVzG2CDbagn8PtO4keBrey1NtbIKVcZHDQsq8vjc"},
+      body:JSON.stringify({email:email.trim()})
+    });
+    setMode("reset-sent");
+  }catch(e){setErr("Blad: "+e.message);}
+  finally{setLoading(false);}
+}
+
   if(verifyMsg) return (
     <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{marginBottom:16}}><ParkLogo size={56}/></div>
@@ -66,6 +80,39 @@ export function AuthScreen({ onAuth }) {
     </div>
   );
 
+  if(mode==="reset") return (
+  <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+    <div style={{width:"100%",maxWidth:340}}>
+      <button style={{...c.btn("ghost"),paddingLeft:0,marginBottom:20,fontSize:13}} onClick={function(){setMode("login");setErr("");}}>← Wróc</button>
+      <div style={c.card(true)}>
+        <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0",marginBottom:6}}>Resetowanie hasła</div>
+        <div style={{fontSize:12,color:"#6b7280",marginBottom:16}}>Wyślemy Ci link do ustawienia nowego hasła.</div>
+        <input style={{...c.input,marginBottom:10}} type="email" placeholder="Twój adres e-mail" value={email} onChange={function(e){setEmail(e.target.value);}}/>
+        {err&&<div style={{fontSize:12,color:"#f87171",marginBottom:10}}>{err}</div>}
+        <button style={{...c.btn("primary"),width:"100%",opacity:loading?0.6:1}} onClick={sendReset} disabled={loading}>
+          {loading?"Wysyłanie...":"Wyślij link resetujący"}
+        </button>
+      </div>
+    </div>
+    <Footer/>
+  </div>
+);
+
+if(mode==="reset-sent") return (
+  <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+    <div style={{marginBottom:16,fontSize:40}}>📬</div>
+    <div style={{...c.card(true),maxWidth:360,width:"100%",textAlign:"center"}}>
+      <div style={{fontSize:16,fontWeight:600,color:"#e8eaf0",marginBottom:8}}>Sprawdź skrzynkę!</div>
+      <div style={{fontSize:13,color:"#6b7280",marginBottom:16,lineHeight:1.6}}>
+        Wysłaliśmy link do resetowania hasła na adres<br/>
+        <span style={{color:"#a78bfa"}}>{email}</span>
+      </div>
+      <button style={{...c.btn("primary"),width:"100%"}} onClick={function(){setMode("login");}}>Wróć do logowania</button>
+    </div>
+    <Footer/>
+  </div>
+);
+
   return (
     <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{width:"100%",maxWidth:340}}>
@@ -79,9 +126,16 @@ export function AuthScreen({ onAuth }) {
           <button style={{...c.btn("primary"),width:"100%",opacity:loading?0.6:1}} onClick={mode==="register"?register:login} disabled={loading}>
             {loading?"Ladowanie...":mode==="register"?"Zarejestruj sie":"Zaloguj"}
           </button>
-          <div style={{fontSize:12,color:"#4b5563",textAlign:"center",marginTop:12,cursor:"pointer"}} onClick={function(){setMode(mode==="register"?"login":"register");setErr("");}}>
-            {mode==="register"?"Masz juz konto? Zaloguj sie":"Nie masz konta? Zarejestruj sie"}
-          </div>
+          <div style={{fontSize:12,color:"#4b5563",textAlign:"center",marginTop:12,cursor:"pointer"}}
+  onClick={function(){setMode(mode==="register"?"login":"register");setErr("");}}>
+  {mode==="register"?"Masz juz konto? Zaloguj sie":"Nie masz konta? Zarejestruj sie"}
+</div>
+{mode==="login"&&(
+  <div style={{fontSize:12,color:"#6b7280",textAlign:"center",marginTop:8,cursor:"pointer"}}
+    onClick={function(){setMode("reset");setErr("");}}>
+    Nie pamiętam hasła
+  </div>
+)}
         </div>
       </div>
       <Footer/>
