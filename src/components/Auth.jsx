@@ -44,7 +44,7 @@ export function AuthScreen({ onAuth }) {
       headers:{"Content-Type":"application/json","apikey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicG5tdnpnZ3NoZ3l0emFzY3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzE2MDAsImV4cCI6MjA5MzA0NzYwMH0.ahtUVzG2CDbagn8PtO4keBrey1NtbIKVcZHDQsq8vjc"},
       body:JSON.stringify({
         email:email.trim(),
-        redirect_to: "https://parkshare.pl/reset-password.html"
+        redirect_to: "https://www.parkshare.pl/reset-password.html"
     })
       
     });
