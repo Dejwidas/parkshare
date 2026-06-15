@@ -42,12 +42,13 @@ export default function Root() {
     try { await sb.auth.signOut(); } catch(e) {}
     clearSession();
     setUser(null);
+    setActiveGroupId(null);
     setScreen("auth");
   }
 
   if(screen==="auth") return <AuthScreen onAuth={handleAuth}/>;
   if(screen==="landing") return <Landing user={user} onJoin={handleJoin} onNew={function(){setScreen("newgroup");}} onLogout={handleLogout}/>;
   if(screen==="newgroup") return <NewGroup onBack={function(){setScreen("landing");}} onCreate={handleNew}/>;
-  if(screen==="app"&&activeGroupId) return <ParkApp groupId={activeGroupId} user={user} onLeave={function(){setScreen("landing");}} onSwitchGroup={handleJoin} onNew={handleNew}/>;
+  if(screen==="app"&&activeGroupId) return <ParkApp groupId={activeGroupId} user={user} onLeave={function(){setScreen("landing");}} onLogout={handleLogout} onSwitchGroup={handleJoin} onNew={handleNew}/>;
   return null;
 }

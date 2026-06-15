@@ -40,7 +40,7 @@ function phoneInput(val, onChange) {
   return <input style={c.input} placeholder="np. +48 600 123 456" value={val} onChange={function(e){var v=e.target.value.replace(/[^0-9+\s\-]/g,"");onChange(v);}}/>;
 }
 
-export function ParkApp({ groupId, user, onLeave, onSwitchGroup, onNew }) {
+export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew }) {
   var [group,setGroup] = useState(null);
   var [spots,setSpots] = useState([]);
   var [slots,setSlots] = useState([]);
@@ -266,7 +266,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
 
   if(loading||!group) return <div style={{...c.app,display:"flex",alignItems:"center",justifyContent:"center"}}><Spinner/></div>;
 
-  if(view==="account") return <AccountSettingsView user={user} onBack={function(){setView("browse");}}/>;
+  if(view==="account") return <AccountSettingsView user={user} onBack={function(){setView("browse");}} onLogout={onLogout}/>;
 
   var isToday = f.isSameDay(selDate,today);
   var browseSpots = spots.map(function(sp){return {...sp,todaySlots:slotsOn(sp.id,dk)};}).filter(function(sp){return sp.todaySlots.length>0;});
@@ -286,7 +286,7 @@ return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick
           )}
           {isAdmin&&<button style={{...c.btn("admin"),padding:"6px 10px",fontSize:12}} onClick={function(){setShowAdmin(true);}}>Admin</button>}
           <button style={{...c.btn("ghost"),padding:"6px 10px",fontSize:12,border:"1px solid #2a2d3e",borderRadius:8}} onClick={function(){setShowInvite(true);}}>Zaproś</button>
-          <UserMenu user={user} onOpenSettings={function(){setView("account");}} onLogout={onLeave}/>
+          <UserMenu user={user} onOpenSettings={function(){setView("account");}} onLogout={onLogout}/>
         </div>
       </div>
 

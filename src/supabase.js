@@ -36,6 +36,9 @@ export var sb = {
       upsert: function(data,conflict) { return sbReq("POST",table,"?on_conflict="+(conflict||"id")+"&select=*",Array.isArray(data)?data:[data]); }
     };
   },
+  rpc: function(fn, args) {
+    return sbReq("POST", "rpc/"+fn, "", args || {});
+  },
   auth: {
     signUp: async function(email,password,name) {
       var r=await fetch(SUPABASE_URL+"/auth/v1/signup",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify({email:email,password:password,data:{name:name}})});
@@ -46,7 +49,9 @@ export var sb = {
       var d=await r.json(); if(d.error) throw new Error(d.error.message||d.msg); if(d.error_description) throw new Error(d.error_description); return d;
     },
     signOut: async function() {
-      await fetch(SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+(_authToken||"")}});
+      try {
+        await fetch(SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+(_authToken||"")}});
+      } catch(e) {}
       _authToken=null;
     }
   },

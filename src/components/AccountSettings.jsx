@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { c } from "../styles.js";
-import { sb } from "../supabase.js";
+import { sb, clearSession } from "../supabase.js";
 
 // ============ MENU UŻYTKOWNIKA (dropdown w headerze) ============
 export function UserMenu({ user, onOpenSettings, onLogout }) {
@@ -56,7 +56,7 @@ export function UserMenu({ user, onOpenSettings, onLogout }) {
 }
 
 // ============ EKRAN USTAWIEŃ KONTA ============
-export function AccountSettingsView({ user, onBack }) {
+export function AccountSettingsView({ user, onBack, onLogout }) {
   return (
     <div style={{minHeight:"100vh",background:"#0f1117",padding:"20px 16px"}}>
       <div style={{maxWidth:520,margin:"0 auto"}}>
@@ -70,7 +70,7 @@ export function AccountSettingsView({ user, onBack }) {
           <Row label="E-mail" value={(user && user.email) || "—"}/>
         </div>
 
-        <DeleteAccountSection user={user}/>
+        <DeleteAccountSection user={user} onLogout={onLogout}/>
       </div>
     </div>
   );
@@ -86,7 +86,7 @@ function Row({ label, value }){
 }
 
 // ============ SEKCJA USUWANIA KONTA ============
-function DeleteAccountSection({ user }) {
+function DeleteAccountSection({ user, onLogout }) {
   var [stage,setStage] = useState("idle");
   var [counts,setCounts] = useState({ booker: 0, owner: 0 });
   var [confirmText,setConfirmText] = useState("");
@@ -95,27 +95,34 @@ function DeleteAccountSection({ user }) {
   async function startDelete() {
     setErr("");
     try {
-      var res = await sb.rpc("count_my_active_reservations");
-      // sb może zwracać różny shape — obsłuż oba
-      var data = (res && res.data) || res;
-      var booker = (data && data.booker) || 0;
-      var owner = (data && data.owner) || 0;
+      var data = await sb.rpc("count_my_active_reservations");
+      // PostgREST może zwrócić obiekt lub tablicę z jednym elementem
+      var payload = Array.isArray(data) ? data[0] : data;
+      var booker = (payload && payload.booker) || 0;
+      var owner = (payload && payload.owner) || 0;
       setCounts({ booker: booker, owner: owner });
       setStage(booker + owner > 0 ? "warning" : "confirm");
-    } catch(e){ setErr("Błąd: " + (e.message || "nieznany")); }
+    } catch(e){
+      console.error("count_my_active_reservations:", e);
+      setErr("Błąd: " + (e.message || "nieznany"));
+    }
   }
 
   async function doDelete() {
     setErr(""); setStage("deleting");
     try {
       await sb.rpc("delete_my_account");
+      // Wyczyść lokalną sesję
       try { await sb.auth.signOut(); } catch(e){}
-      try {
-        var keys = Object.keys(localStorage).filter(function(k){return k.indexOf("sb-")===0 || k.indexOf("parkshare")===0;});
-        keys.forEach(function(k){ localStorage.removeItem(k); });
-      } catch(e){}
-      window.location.href = "/";
+      try { clearSession(); } catch(e){}
+      // Wymuś powrót do ekranu logowania
+      if(typeof onLogout === "function") {
+        onLogout();
+      } else {
+        window.location.reload();
+      }
     } catch(e){
+      console.error("delete_my_account:", e);
       setErr("Nie udało się usunąć konta: " + (e.message || "nieznany"));
       setStage("confirm");
     }
@@ -133,7 +140,12 @@ function DeleteAccountSection({ user }) {
         Usunięcie konta jest nieodwracalne. Skasujemy wszystkie Twoje miejsca, terminy, rezerwacje i członkostwa w grupach.
       </div>
 
-      {stage==="idle" && <button style={btnDanger} onClick={startDelete}>Usuń konto</button>}
+      {stage==="idle" && (
+        <>
+          <button style={btnDanger} onClick={startDelete}>Usuń konto</button>
+          {err && <div style={{fontSize:12,color:"#f87171",marginTop:8}}>{err}</div>}
+        </>
+      )}
 
       {stage==="warning" && (
         <div>
