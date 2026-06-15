@@ -40,14 +40,19 @@ export var sb = {
     return sbReq("POST", "rpc/"+fn, "", args || {});
   },
   auth: {
-    signUp: async function(email,password,name) {
-      var r=await fetch(SUPABASE_URL+"/auth/v1/signup",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify({email:email,password:password,data:{name:name}})});
-      var d=await r.json(); if(d.error) throw new Error(d.error.message||d.msg); return d;
-    },
-    signIn: async function(email,password) {
-      var r=await fetch(SUPABASE_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify({email:email,password:password})});
-      var d=await r.json(); if(d.error) throw new Error(d.error.message||d.msg); if(d.error_description) throw new Error(d.error_description); return d;
-    },
+   signUp: async function(email,password,name) {
+  var r=await fetch(SUPABASE_URL+"/auth/v1/signup",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify({email:email,password:password,data:{name:name}})});
+  var d=await r.json();
+  if(!r.ok) throw new Error(d.msg||d.error_description||d.error||"Signup failed");
+  return d;
+},
+signIn: async function(email,password) {
+  var r=await fetch(SUPABASE_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify({email:email,password:password})});
+  var d=await r.json();
+  if(!r.ok) throw new Error(d.msg||d.error_description||(d.error&&d.error.message)||d.error||"Login failed");
+  if(!d.user) throw new Error("Login failed");
+  return d;
+},
     signOut: async function() {
       try {
         await fetch(SUPABASE_URL+"/auth/v1/logout",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+(_authToken||"")}});

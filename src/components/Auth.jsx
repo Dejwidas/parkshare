@@ -29,8 +29,10 @@ export function AuthScreen({ onAuth }) {
       onAuth(u);
     }catch(e){
       var msg=e.message;
-      if(msg.includes("Email not confirmed")) msg="Potwierdz swoj adres e-mail przed logowaniem.";
-      if(msg.includes("Invalid login")) msg="Nieprawidlowy e-mail lub haslo.";
+      if(msg.includes("Email not confirmed")) msg="Potwierdź swój adres e-mail przed logowaniem.";
+else if(msg.includes("Invalid login")||msg.includes("invalid_credentials")||msg.includes("Login failed")) msg="Nieprawidłowy e-mail lub hasło.";
+else if(msg.includes("Email rate limit")) msg="Zbyt wiele prób. Spróbuj ponownie za chwilę.";
+else msg="Błąd logowania: "+msg;
       setErr(msg);
     }finally{setLoading(false);}
   }
