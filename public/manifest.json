@@ -1,0 +1,14 @@
+{
+  "name": "ParkShare",
+  "short_name": "ParkShare",
+  "description": "Wynajem miejsc parkingowych na osiedlu",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#7c3aed",
+  "lang": "pl",
+  "icons": [
+    { "src": "/favicon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

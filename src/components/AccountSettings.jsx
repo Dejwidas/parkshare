@@ -17,35 +17,38 @@ export function UserMenu({ user, onOpenSettings, onLogout }) {
   var initial = (name.charAt(0) || "?").toUpperCase();
   var isGuest = !!(user && user.guest);
 
+  var menuItemStyle = {display:"block",width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"11px 12px",color:"#e8eaf0",fontSize:14,cursor:"pointer"};
+
   return (
     <div ref={ref} style={{position:"relative"}}>
       <button
         onClick={function(){ setOpen(function(o){return !o;}); }}
-        style={{display:"flex",alignItems:"center",gap:8,background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:10,padding:"4px 10px 4px 4px",cursor:"pointer",color:"#e8eaf0",fontSize:13}}
+        style={{display:"flex",alignItems:"center",gap:6,background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:10,padding:"4px 8px 4px 4px",cursor:"pointer",color:"#e8eaf0",fontSize:13}}
       >
         <div style={{...c.avatar,margin:0}}>{initial}</div>
-        <span style={{maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{name}</span>
         <span style={{fontSize:9,color:"#6b7280"}}>▾</span>
       </button>
 
       {open && (
-        <div style={{position:"absolute",right:0,top:"calc(100% + 6px)",background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:10,minWidth:220,boxShadow:"0 10px 30px rgba(0,0,0,0.4)",zIndex:250,overflow:"hidden"}}>
+        <div style={{position:"absolute",right:0,top:"calc(100% + 6px)",background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:10,minWidth:230,maxWidth:"calc(100vw - 24px)",boxShadow:"0 10px 30px rgba(0,0,0,0.4)",zIndex:250,overflow:"hidden"}}>
           <div style={{padding:"10px 12px",borderBottom:"1px solid #2a2d3e"}}>
             <div style={{fontSize:13,color:"#e8eaf0",fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{name}</div>
             {user && user.email && <div style={{fontSize:11,color:"#6b7280",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{user.email}</div>}
             {isGuest && <div style={{fontSize:11,color:"#6b7280"}}>Tryb gościa</div>}
           </div>
+
           {!isGuest && (
             <button
               onClick={function(){ setOpen(false); onOpenSettings(); }}
-              style={{display:"block",width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"10px 12px",color:"#e8eaf0",fontSize:13,cursor:"pointer"}}
+              style={menuItemStyle}
               onMouseEnter={function(e){e.currentTarget.style.background="#22253a";}}
               onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}
             >⚙  Ustawienia konta</button>
           )}
+
           <button
             onClick={function(){ setOpen(false); onLogout(); }}
-            style={{display:"block",width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"10px 12px",color:"#f87171",fontSize:13,cursor:"pointer",borderTop:!isGuest?"1px solid #2a2d3e":"none"}}
+            style={{...menuItemStyle,color:"#f87171",borderTop:!isGuest?"1px solid #2a2d3e":"none"}}
             onMouseEnter={function(e){e.currentTarget.style.background="#22253a";}}
             onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}
           >{isGuest?"↩  Zaloguj się":"↩  Wyloguj"}</button>
@@ -78,9 +81,9 @@ export function AccountSettingsView({ user, onBack, onLogout }) {
 
 function Row({ label, value }){
   return (
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #22253a"}}>
-      <span style={{fontSize:13,color:"#6b7280"}}>{label}</span>
-      <span style={{fontSize:13,color:"#e8eaf0",maxWidth:"60%",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{value}</span>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #22253a",gap:8}}>
+      <span style={{fontSize:13,color:"#6b7280",flexShrink:0}}>{label}</span>
+      <span style={{fontSize:13,color:"#e8eaf0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{value}</span>
     </div>
   );
 }
@@ -96,7 +99,6 @@ function DeleteAccountSection({ user, onLogout }) {
     setErr("");
     try {
       var data = await sb.rpc("count_my_active_reservations");
-      // PostgREST może zwrócić obiekt lub tablicę z jednym elementem
       var payload = Array.isArray(data) ? data[0] : data;
       var booker = (payload && payload.booker) || 0;
       var owner = (payload && payload.owner) || 0;
@@ -112,10 +114,8 @@ function DeleteAccountSection({ user, onLogout }) {
     setErr(""); setStage("deleting");
     try {
       await sb.rpc("delete_my_account");
-      // Wyczyść lokalną sesję
       try { await sb.auth.signOut(); } catch(e){}
       try { clearSession(); } catch(e){}
-      // Wymuś powrót do ekranu logowania
       if(typeof onLogout === "function") {
         onLogout();
       } else {
@@ -129,9 +129,9 @@ function DeleteAccountSection({ user, onLogout }) {
   }
 
   var card = {background:"#1a1d2e",border:"1px solid #7f1d1d",borderRadius:12,padding:16};
-  var btnDanger = {background:"#dc2626",color:"#fff",border:"none",borderRadius:8,padding:"10px 16px",fontSize:14,fontWeight:600,cursor:"pointer",width:"100%"};
-  var btnGhost = {background:"transparent",color:"#9ca3af",border:"1px solid #2a2d3e",borderRadius:8,padding:"10px 16px",fontSize:14,cursor:"pointer",width:"100%",marginTop:8};
-  var input = {width:"100%",background:"#0f1117",border:"1px solid #2a2d3e",borderRadius:8,padding:"10px 12px",color:"#e8eaf0",fontSize:14,boxSizing:"border-box"};
+  var btnDanger = {background:"#dc2626",color:"#fff",border:"none",borderRadius:8,padding:"12px 16px",fontSize:14,fontWeight:600,cursor:"pointer",width:"100%"};
+  var btnGhost = {background:"transparent",color:"#9ca3af",border:"1px solid #2a2d3e",borderRadius:8,padding:"12px 16px",fontSize:14,cursor:"pointer",width:"100%",marginTop:8};
+  var input = {width:"100%",background:"#0f1117",border:"1px solid #2a2d3e",borderRadius:8,padding:"12px",color:"#e8eaf0",fontSize:16,boxSizing:"border-box"};
 
   return (
     <div style={card}>

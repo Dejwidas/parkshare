@@ -3,7 +3,7 @@ import { c } from "../styles.js";
 import { sb } from "../supabase.js";
 import { ParkLogo } from "./UI.jsx";
 
-export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
+export function GroupSwitcher({ groupId, groupName, user, isAdmin, onJoin, onNew, onInvite, onOpenAdmin }) {
   var [open,setOpen] = useState(false);
   var [myGroups,setMyGroups] = useState([]);
   var [showJoinForm,setShowJoinForm] = useState(false);
@@ -42,7 +42,7 @@ export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
     onNew(newName.trim());
   }
 
-  var dropdownStyle = {position:"absolute",top:"calc(100% + 10px)",left:0,background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:12,padding:12,minWidth:280,zIndex:200,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"};
+  var dropdownStyle = {position:"absolute",top:"calc(100% + 10px)",left:0,background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:12,padding:12,minWidth:280,maxWidth:"calc(100vw - 24px)",zIndex:200,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"};
 
   return (
     <div style={{position:"relative"}}>
@@ -53,8 +53,8 @@ export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
             <span>ParkShare</span>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:4}}>
-            <span style={{fontSize:11,color:"#6b7280"}}>{groupName}</span>
-            <span style={{fontSize:9,color:"#4b5563"}}>v</span>
+            <span style={{fontSize:11,color:"#6b7280",maxWidth:140,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{groupName}</span>
+            <span style={{fontSize:9,color:"#4b5563"}}>▾</span>
           </div>
         </div>
       </div>
@@ -70,11 +70,11 @@ export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
                   <div key={g.id}
                     style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,marginBottom:4,background:isActive?"#2a1f5e":"transparent",cursor:isActive?"default":"pointer"}}
                     onClick={function(){if(!isActive){setOpen(false);onJoin(g.id);}}}>
-                    <div>
-                      <div style={{fontSize:13,fontWeight:500,color:isActive?"#a78bfa":"#e8eaf0"}}>{g.name}</div>
+                    <div style={{minWidth:0,flex:1}}>
+                      <div style={{fontSize:13,fontWeight:500,color:isActive?"#a78bfa":"#e8eaf0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.name}</div>
                       <div style={{fontSize:11,color:"#4b5563"}}>{g.id}</div>
                     </div>
-                    {isActive&&<span style={{fontSize:11,color:"#a78bfa"}}>aktywna</span>}
+                    {isActive&&<span style={{fontSize:11,color:"#a78bfa",flexShrink:0,marginLeft:6}}>aktywna</span>}
                   </div>
                 );
               })}
@@ -83,13 +83,22 @@ export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
           )}
           {!showJoinForm&&!showNewForm&&(
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {!user.guest && typeof onInvite === "function" && (
+                <button style={{...c.btn("ghost"),width:"100%",fontSize:12,padding:"8px",border:"1px solid #2a2d3e"}} onClick={function(){setOpen(false);onInvite();}}>📨  Zaproś do grupy</button>
+              )}
               <button style={{...c.btn("ghost"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowJoinForm(true);}}>+ Dołącz do grupy (kod)</button>
               <button style={{...c.btn("default"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowNewForm(true);}}>+ Utwórz nową grupę</button>
+              {!user.guest && isAdmin && typeof onOpenAdmin === "function" && (
+                <>
+                  <div style={{borderTop:"1px solid #2a2d3e",margin:"4px 0"}}/>
+                  <button style={{...c.btn("admin"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setOpen(false);onOpenAdmin();}}>🛡  Panel admina</button>
+                </>
+              )}
             </div>
           )}
           {showJoinForm&&(
             <div>
-              <input style={{...c.input,marginBottom:6,fontSize:13}} placeholder="Wpisz kod grupy" value={code} onChange={function(e){setCode(e.target.value.trim());}}/>
+              <input style={{...c.input,marginBottom:6,fontSize:14}} placeholder="Wpisz kod grupy" value={code} onChange={function(e){setCode(e.target.value.trim());}}/>
               {err&&<div style={{fontSize:11,color:"#f87171",marginBottom:6}}>{err}</div>}
               <div style={{display:"flex",gap:6}}>
                 <button style={{...c.btn("primary"),flex:1,fontSize:12,padding:"7px"}} onClick={join}>Dołącz</button>
@@ -99,7 +108,7 @@ export function GroupSwitcher({ groupId, groupName, user, onJoin, onNew }) {
           )}
           {showNewForm&&(
             <div>
-              <input style={{...c.input,marginBottom:6,fontSize:13}} placeholder="Nazwa osiedla" value={newName} onChange={function(e){setNewName(e.target.value);}}/>
+              <input style={{...c.input,marginBottom:6,fontSize:14}} placeholder="Nazwa osiedla" value={newName} onChange={function(e){setNewName(e.target.value);}}/>
               <div style={{display:"flex",gap:6}}>
                 <button style={{...c.btn("primary"),flex:1,fontSize:12,padding:"7px"}} onClick={createNew}>Utwórz</button>
                 <button style={{...c.btn("default"),fontSize:12,padding:"7px"}} onClick={function(){setShowNewForm(false);setNewName("");}}>Anuluj</button>
