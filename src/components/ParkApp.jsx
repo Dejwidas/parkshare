@@ -505,7 +505,11 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
                   {spSlots.length>0&&(
                     <div>
                       <div style={{fontSize:11,fontWeight:600,color:"#6b7280",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.5px"}}>Terminy</div>
-                      {spSlots.sort(function(a,b){return a.date.localeCompare(b.date);}).map(function(sl){
+                      {(function(){
+                        var todayKey = f.dateKey(today);
+                        var activeSlots = spSlots.filter(function(sl){return sl.date>=todayKey;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+                        if(activeSlots.length===0) return <div style={{fontSize:12,color:"#374151",textAlign:"center",padding:"10px 0"}}>Brak aktywnych terminów</div>;
+                        return activeSlots.map(function(sl){
                         var canCancel = sl.booked&&f.canCancel(sl.booked_at);
                         return (
                           <div key={sl.id} style={{...c.slotRow,background:canCancel?"#1c1200":"#0f1117",border:canCancel?"1px solid #fbbf2444":"none"}}>
@@ -529,7 +533,8 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
                             </div>
                           </div>
                         );
-                      })}
+                      });
+                      })()}
                     </div>
                   )}
                 </div>
