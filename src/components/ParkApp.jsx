@@ -41,12 +41,19 @@ function phoneInput(val, onChange) {
 }
 
 // ============ BOTTOM NAV (mobile) ============
-function BottomNav({ view, setView, pendingCount, isGuest }) {
+function BottomNav({ view, setView, pendingCount, myBookingsCount, isGuest }) {
   return (
     <div style={c.bottomNav}>
       <button style={c.bottomNavBtn(view==="browse")} onClick={function(){setView("browse");}}>
         <span style={c.bottomNavIcon}>🗓</span>
         <span>Przeglądaj</span>
+      </button>
+      <button style={c.bottomNavBtn(view==="mybookings")} onClick={function(){setView("mybookings");}}>
+        <span style={{...c.bottomNavIcon,position:"relative"}}>
+          📋
+          {myBookingsCount>0 && <span style={{position:"absolute",top:-4,right:-10,background:"#7c3aed",color:"#fff",borderRadius:10,fontSize:9,fontWeight:700,padding:"1px 5px",minWidth:14,textAlign:"center"}}>{myBookingsCount}</span>}
+        </span>
+        <span>Rezerwacje</span>
       </button>
       {!isGuest && (
         <button style={c.bottomNavBtn(view==="myspots")} onClick={function(){setView("myspots");}}>
@@ -159,6 +166,28 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
       setShowAdd(false); showToast("Miejsce dodane!"); loadAll();
     }catch(e){showToast("Błąd: "+e.message,"error");}
   }
+
+//////////////////////////////////////////////////////////////////////////////nowe funkcje \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+  function getPendingBookings(){
+  return spots.filter(isOwner).flatMap(function(sp){
+    return slotsForSpot(sp.id).filter(function(sl){return sl.booked&&f.canCancel(sl.booked_at);}).map(function(sl){return {...sl,spotName:sp.name};});
+  });
+}
+var pendingBookings = getPendingBookings();
+
+  function getMyBookings(){
+  var todayKey = f.dateKey(today);
+  return spots.flatMap(function(sp){
+    return slotsForSpot(sp.id).filter(function(sl){
+      return sl.booked && sl.booked_by_uid === user.uid && sl.date >= todayKey;
+    }).map(function(sl){ return {...sl, spot: sp}; });
+  }).sort(function(a,b){
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    return f.timeToMin(a.from_time) - f.timeToMin(b.from_time);
+  });
+}
+var myBookings = getMyBookings();
+
 
   async function updateField(spotId,field,val){
     try{await sb.from("spots").update({[field]:val},"?id=eq."+spotId);loadAll();}catch(e){}
@@ -316,6 +345,10 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
           {!isMobile && (
             <>
               <button style={c.navBtn(view==="browse")} onClick={function(){setView("browse");setSelDate(new Date(today));setWeekOffset(0);}}>Przeglądaj</button>
+              <button style={{...c.navBtn(view==="mybookings"),position:"relative"}} onClick={function(){setView("mybookings");}}>
+  Moje rezerwacje
+  {myBookings.length>0&&<span style={{...c.newBadge,position:"absolute",top:-6,right:-6,padding:"1px 5px",fontSize:10,background:"#7c3aed"}}>{myBookings.length}</span>}
+</button>
               {!user.guest&&(
                 <button style={{...c.navBtn(view==="myspots"),position:"relative"}} onClick={function(){setView("myspots");}}>
                   Moje miejsca
@@ -402,6 +435,64 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
             );})}
           </div>
         )}
+
+        {view==="mybookings"&&(
+  <div>
+    <div style={{fontSize:18,fontWeight:600,color:"#e8eaf0",marginBottom:4}}>Moje rezerwacje</div>
+    <div style={{fontSize:13,color:"#6b7280",marginBottom:16}}>Twoje aktywne i nadchodzące rezerwacje</div>
+
+    {myBookings.length === 0 ? (
+      <div style={{textAlign:"center",padding:"40px 20px",color:"#6b7280"}}>
+        <div style={{fontSize:48,marginBottom:12}}>📋</div>
+        <div style={{fontSize:14,marginBottom:16}}>Nie masz aktywnych rezerwacji</div>
+        <button style={c.btn("primary")} onClick={function(){setView("browse");setSelDate(new Date(today));setWeekOffset(0);}}>Przejdź do kalendarza</button>
+      </div>
+    ) : (
+      myBookings.map(function(b){
+        var canCancel = f.canCancel(b.booked_at);
+        var when = b.all_day ? "Cały dzień" : (b.from_time + " – " + b.to_time);
+        var dateObj = f.parseDate(b.date);
+        return (
+          <div key={b.id} style={{background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:12,padding:14,marginBottom:10}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10,marginBottom:8}}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0",marginBottom:2}}>{b.spot.name}</div>
+                <div style={{fontSize:12,color:"#9ca3af"}}>{f.fmtDate(dateObj)} · {when}</div>
+              </div>
+              <div style={{fontSize:11,fontWeight:600,padding:"3px 8px",borderRadius:6,background:canCancel?"#3f1d1d":"#1e3a2a",color:canCancel?"#fca5a5":"#6ee7b7",flexShrink:0}}>
+                {canCancel ? "⏳ Oczekuje" : "✓ Zaakceptowane"}
+              </div>
+            </div>
+
+            <div style={{fontSize:13,color:b.price===0?"#6ee7b7":"#a78bfa",marginBottom:8}}>
+              {b.price===0 ? "Bezpłatnie" : (b.price + " zł")}
+            </div>
+
+            <div style={{borderTop:"1px solid #22253a",paddingTop:8,fontSize:12,color:"#9ca3af"}}>
+              <div style={{marginBottom:4}}>Właściciel: <span style={{color:"#e8eaf0"}}>{b.spot.owner||"—"}</span></div>
+              {b.spot.phone && <div style={{marginBottom:4}}>📞 <a href={"tel:"+b.spot.phone} style={{color:"#a78bfa",textDecoration:"none"}}>{b.spot.phone}</a></div>}
+              {b.spot.email && <div style={{marginBottom:4}}>✉ <a href={"mailto:"+b.spot.email} style={{color:"#a78bfa",textDecoration:"none"}}>{b.spot.email}</a></div>}
+              {b.spot.note && <div style={{marginTop:6,padding:8,background:"#0f1117",borderRadius:6,color:"#d1d5db",lineHeight:1.5}}>{b.spot.note}</div>}
+            </div>
+
+            {canCancel && (
+              <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid #22253a"}}>
+                <div style={{fontSize:11,color:"#fbbf24",marginBottom:6}}>Możesz anulować bez konsekwencji jeszcze przez {f.timeLeft(b.booked_at)}</div>
+                <button style={{...c.btn("ghost"),width:"100%",border:"1px solid #7f1d1d",color:"#fca5a5"}} onClick={function(){confirm("Czy na pewno anulować tę rezerwację?", async function(){
+                  try {
+                    await sb.from("slots").update({booked:false,booked_by:null,booker_phone:null,booked_at:null,booked_by_uid:null},"?id=eq."+b.id);
+                    showToast("Rezerwacja anulowana");
+                    loadAll();
+                  } catch(e) { showToast("Błąd: "+e.message,"error"); }
+                });}}>Anuluj rezerwację</button>
+              </div>
+            )}
+          </div>
+        );
+      })
+    )}
+  </div>
+)}
 
         {view==="myspots"&&!user.guest&&(
           <div>
@@ -549,9 +640,9 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
       </div>
 
       {/* Bottom nav (mobile only) */}
-      {isMobile && (view==="browse" || view==="myspots") && (
-        <BottomNav view={view} setView={setView} pendingCount={pendingBookings.length} isGuest={user.guest}/>
-      )}
+{isMobile && (view==="browse" || view==="myspots" || view==="mybookings") && (
+  <BottomNav view={view} setView={setView} pendingCount={pendingBookings.length} myBookingsCount={myBookings.length} isGuest={user.guest}/>
+)}
 
       {!isMobile && (
         <div style={{textAlign:"center",padding:"24px 0 8px",borderTop:"1px solid #1a1d2e"}}>
