@@ -11,3 +11,12 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+
+// Service Worker — tylko w produkcji, żeby nie kolidował z Vite dev serverem
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js').catch(function (err) {
+      console.error('Service Worker registration failed:', err)
+    })
+  })
+}

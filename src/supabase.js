@@ -15,12 +15,14 @@ export function clearSession() {
   try { sessionStorage.removeItem("ps_token"); sessionStorage.removeItem("ps_user"); } catch(e) {}
 }
 
-function sbHeaders() {
-  return { "Content-Type":"application/json", "apikey":SUPABASE_KEY, "Authorization":"Bearer "+(_authToken||SUPABASE_KEY), "Prefer":"return=representation" };
+function sbHeaders(extra) {
+  var h = { "Content-Type":"application/json", "apikey":SUPABASE_KEY, "Authorization":"Bearer "+(_authToken||SUPABASE_KEY), "Prefer":"return=representation" };
+  if (extra) { for (var k in extra) h[k] = extra[k]; }
+  return h;
 }
 
-async function sbReq(method, table, qs, body) {
-  var r = await fetch(SUPABASE_URL+"/rest/v1/"+table+(qs||""), { method:method, headers:sbHeaders(), body:body?JSON.stringify(body):null });
+async function sbReq(method, table, qs, body, extraHeaders) {
+  var r = await fetch(SUPABASE_URL+"/rest/v1/"+table+(qs||""), { method:method, headers:sbHeaders(extraHeaders), body:body?JSON.stringify(body):null });
   if (!r.ok) { var e=await r.text(); throw new Error(e); }
   var ct = r.headers.get("content-type")||"";
   return ct.includes("json") ? r.json() : [];
@@ -33,8 +35,7 @@ export var sb = {
       insert: function(data) { return sbReq("POST",table,"?select=*",Array.isArray(data)?data:[data]); },
       update: function(data,qs) { return sbReq("PATCH",table,(qs||"")+"&select=*",data); },
       delete: function(qs) { return sbReq("DELETE",table,qs); },
-      upsert: function(data,conflict) { return sbReq("POST",table,"?on_conflict="+(conflict||"id")+"&select=*",Array.isArray(data)?data:[data]); }
-    };
+      upsert: function(data, conflict) { return sbReq("POST", table, "?on_conflict="+(conflict||"id")+"&select=*", Array.isArray(data)?data:[data], {"Prefer":"resolution=merge-duplicates,return=representation"}); }    };
   },
   rpc: function(fn, args) {
     return sbReq("POST", "rpc/"+fn, "", args || {});
