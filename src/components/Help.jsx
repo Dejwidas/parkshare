@@ -38,7 +38,7 @@ var FAQ = [
       },
       {
         q: `Jak dołączyć do istniejącej grupy?`,
-        a: `Potrzebujesz linku zaproszenia od kogoś, kto już jest w grupie (najczęściej od administratora). Wystarczy, że klikniesz link na telefonie lub komputerze — apka otworzy się na ekranie dołączania do tej konkretnej grupy.`
+        a: `Potrzebujesz linku zaproszenia od kogoś, kto już jest w grupie (najczęściej od administratora). Wystarczy, że klikniesz link na telefonie lub komputerze — aplikacja otworzy się na ekranie dołączania do tej konkretnej grupy.`
       },
       {
         q: `Jak zaprosić kogoś do grupy?`,
@@ -67,7 +67,7 @@ var FAQ = [
       },
       {
         q: `Jak ustawić cenę albo udostępnić za darmo?`,
-        a: `Przy dodawaniu terminu wpisz kwotę w złotówkach lub pozostaw 0, żeby udostępnić bezpłatnie. Cena jest informacyjna — apka nie obsługuje płatności, rozliczacie się między sobą poza systemem.`
+        a: `Przy dodawaniu terminu wpisz kwotę w złotówkach lub pozostaw 0, żeby udostępnić bezpłatnie. Cena jest informacyjna — aplikacja nie obsługuje płatności, rozliczacie się między sobą poza systemem.`
       },
       {
         q: `Jak edytować lub usunąć udostępniony termin?`,
@@ -84,7 +84,7 @@ var FAQ = [
       },
       {
         q: `Co to jest okno anulowania 1 godziny?`,
-        a: `Po dokonaniu rezerwacji masz godzinę, by ją anulować bez konsekwencji — w tym czasie status to „oczekuje". Po upływie godziny rezerwacja staje się „zaakceptowana" i nie da się jej już prosto cofnąć — w razie potrzeby musisz skontaktować się bezpośrednio z właścicielem miejsca.`
+        a: `Po dokonaniu rezerwacji właściciel miejsca ma godzinę na zaakceptowanie bądź odrzucenie rezerwacji. w przypadku braku reakcji ze strony właściciela, rezerwacja zostaje potwierdzona po godzinie, a osoba chcącą skorzytać z miejsca otrzymuje numer miejsca (w przypadku gdy ten był ukryty)`
       },
       {
         q: `Jak skontaktować się z właścicielem miejsca?`,
@@ -126,14 +126,14 @@ var FAQ = [
     items: [
       {
         q: `Jak dodać apkę do ekranu głównego na Androidzie?`,
-        a: `Otwórz ParkShare w przeglądarce Chrome, dotknij menu (trzy kropki w prawym górnym rogu) i wybierz „Zainstaluj aplikację" albo „Dodaj do ekranu głównego". Ikonka pojawi się obok pozostałych aplikacji i będzie się otwierać jak natywna apka.`
+        a: `Otwórz ParkShare w przeglądarce Chrome, dotknij menu (trzy kropki w prawym górnym rogu) i wybierz „Zainstaluj aplikację" albo „Dodaj do ekranu głównego". Ikonka pojawi się obok pozostałych aplikacji i będzie się otwierać jak natywna aplikacja.`
       },
       {
         q: `Jak dodać apkę do ekranu głównego na iPhone?`,
         a: `Otwórz ParkShare w Safari (nie Chrome!), kliknij ikonę udostępniania (kwadrat ze strzałką w górę) na dolnym pasku, przewiń listę i wybierz „Dodaj do ekranu głównego". Potwierdź nazwę i gotowe.`
       },
       {
-        q: `Czy apka działa offline?`,
+        q: `Czy aplikacja działa offline?`,
         a: `Częściowo — ekrany i wcześniej wczytane dane będą widoczne, ale rezerwowanie, dodawanie miejsc i synchronizacja kalendarza wymagają połączenia z internetem.`
       }
     ]
@@ -147,7 +147,7 @@ var FAQ = [
       },
       {
         q: `Jak usunąć konto?`,
-        a: `Wejdź w „Ustawienia konta" → na dole znajdziesz „Strefę niebezpieczną" z opcją usunięcia konta. Apka pokaże Ci, ile masz aktywnych rezerwacji, i poprosi o ostateczne potwierdzenie wpisując słowo „USUŃ".`
+        a: `Wejdź w „Ustawienia konta" → na dole znajdziesz „Strefę niebezpieczną" z opcją usunięcia konta. Aplikacja pokaże Ci, ile masz aktywnych rezerwacji, i poprosi o ostateczne potwierdzenie wpisując słowo „USUŃ".`
       },
       {
         q: `Co się stanie z moimi danymi po usunięciu konta?`,
