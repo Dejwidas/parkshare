@@ -85,5 +85,15 @@ signIn: async function(email,password) {
         };
       }
     };
-  }
+  },
+  invoke: async function(fnName, body) {
+  var r = await fetch(SUPABASE_URL + "/functions/v1/" + fnName, {
+    method: "POST",
+    headers: { "Content-Type":"application/json", "apikey":SUPABASE_KEY, "Authorization":"Bearer "+(_authToken||SUPABASE_KEY) },
+    body: JSON.stringify(body || {})
+  });
+  if (!r.ok) { var e = await r.text(); throw new Error(e); }
+  var ct = r.headers.get("content-type")||"";
+  return ct.includes("json") ? r.json() : null;
+},
 };

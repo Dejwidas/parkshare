@@ -237,9 +237,12 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
 
   async function doConfirmBook(){
     if(!bookerName.trim()) return;
+    var slotId = bookModal.slotId;
     try{
-      await sb.from("slots").update({booked:true,booked_by:bookerName,booker_phone:bookerPhone,booked_at:Date.now(),booked_by_uid:user.uid},"?id=eq."+bookModal.slotId);
+      await sb.from("slots").update({booked:true,booked_by:bookerName,booker_phone:bookerPhone,booked_at:Date.now(),booked_by_uid:user.uid},"?id=eq."+slotId);
       setBookModal(null); setBookerName(user.guest?"":user.name); setBookerPhone(""); showToast("Rezerwacja potwierdzona!"); loadAll();
+      // Powiadom właściciela miejsca (fire-and-forget, nie blokuje UI)
+      sb.invoke("send-push", { slot_id: slotId }).catch(function(e){ console.error("push notify:", e); });
     }catch(e){showToast("Błąd: "+e.message,"error");}
   }
 

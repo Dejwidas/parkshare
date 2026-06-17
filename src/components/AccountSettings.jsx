@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { c } from "../styles.js";
 import { sb, clearSession } from "../supabase.js";
+import { isPushSupported, getPushStatus, subscribePush, unsubscribePush } from "../push.js";
 
 // ============ MENU UŻYTKOWNIKA (dropdown w headerze) ============
 export function UserMenu({ user, onOpenSettings, onLogout }) {
@@ -73,6 +74,8 @@ export function AccountSettingsView({ user, onBack, onLogout }) {
           <Row label="E-mail" value={(user && user.email) || "—"}/>
         </div>
 
+        <NotificationsSection user={user}/>
+
         <DeleteAccountSection user={user} onLogout={onLogout}/>
       </div>
     </div>
@@ -84,6 +87,71 @@ function Row({ label, value }){
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #22253a",gap:8}}>
       <span style={{fontSize:13,color:"#6b7280",flexShrink:0}}>{label}</span>
       <span style={{fontSize:13,color:"#e8eaf0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{value}</span>
+    </div>
+  );
+}
+
+// ============ SEKCJA POWIADOMIEŃ PUSH ============
+function NotificationsSection({ user }) {
+  var [status,setStatus] = useState({ supported: false, subscribed: false, permission: "default" });
+  var [busy,setBusy] = useState(false);
+  var [err,setErr] = useState("");
+
+  useEffect(function(){
+    getPushStatus().then(setStatus);
+  }, []);
+
+  async function toggle() {
+    setErr(""); setBusy(true);
+    try {
+      if (status.subscribed) {
+        await unsubscribePush();
+      } else {
+        await subscribePush(user && user.uid);
+      }
+      var fresh = await getPushStatus();
+      setStatus(fresh);
+    } catch(e) {
+      setErr(e.message || "Nie udało się zmienić ustawień");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  var card = {background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:12,padding:16,marginBottom:16};
+  var btn = {background:status.subscribed?"transparent":"#7c3aed",color:status.subscribed?"#e8eaf0":"#fff",border:status.subscribed?"1px solid #2a2d3e":"none",borderRadius:8,padding:"10px 14px",fontSize:14,fontWeight:600,cursor:busy?"wait":"pointer",width:"100%",opacity:busy?0.6:1};
+
+  return (
+    <div style={card}>
+      <div style={{fontSize:14,fontWeight:600,color:"#e8eaf0",marginBottom:6}}>Powiadomienia push</div>
+      <div style={{fontSize:12,color:"#9ca3af",lineHeight:1.5,marginBottom:12}}>
+        Otrzymuj powiadomienie na telefon/przeglądarkę, gdy ktoś zarezerwuje Twoje miejsce parkingowe.
+      </div>
+
+      {!status.supported && (
+        <div style={{fontSize:12,color:"#9ca3af"}}>
+          Twoja przeglądarka nie obsługuje powiadomień. Na iOS musisz najpierw dodać aplikację do ekranu głównego.
+        </div>
+      )}
+
+      {status.supported && status.permission === "denied" && (
+        <div style={{fontSize:12,color:"#fbbf24",lineHeight:1.5,marginBottom:8}}>
+          ⚠ Powiadomienia są zablokowane w ustawieniach przeglądarki. Aby je włączyć, odblokuj je w ustawieniach strony.
+        </div>
+      )}
+
+      {status.supported && status.permission !== "denied" && (
+        <>
+          <button style={btn} onClick={toggle} disabled={busy}>
+            {busy ? "..." : (status.subscribed ? "🔕  Wyłącz powiadomienia" : "🔔  Włącz powiadomienia")}
+          </button>
+          {status.subscribed && (
+            <div style={{fontSize:11,color:"#6ee7b7",marginTop:8}}>✓ Powiadomienia są aktywne na tym urządzeniu</div>
+          )}
+        </>
+      )}
+
+      {err && <div style={{fontSize:12,color:"#f87171",marginTop:8}}>{err}</div>}
     </div>
   );
 }

@@ -4,6 +4,9 @@ export var MONTHS_FULL = ["Styczen","Luty","Marzec","Kwiecien","Maj","Czerwiec",
 export var DAYS_PL = ["Niedziela","Poniedzialek","Wtorek","Sroda","Czwartek","Piatek","Sobota"];
 export var CANCEL_WINDOW_MS = 60 * 60 * 1000;
 
+// Klucz publiczny VAPID dla Web Push — bezpieczny do trzymania we frontendzie
+export var VAPID_PUBLIC_KEY = "BB2YN7Uwzw3--yvZ2rlPMHyOEsiXIrZkvlmOxjTyehy9bMVUsXMitkwMq3M3oVJHDIFPIyQ6WLAO0Ez0i-nwUqI";
+
 export var today = new Date();
 today.setHours(0,0,0,0);
 
