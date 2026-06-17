@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { c } from "../styles.js";
 import { sb } from "../supabase.js";
 import { ParkLogo, Footer, Spinner } from "./UI.jsx";
+import { HelpButton } from "./Help.jsx";
+
 
 export function Landing({ user, onJoin, onNew, onLogout }) {
   var [code,setCode] = useState(""); var [err,setErr] = useState("");

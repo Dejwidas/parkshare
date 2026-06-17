@@ -4,12 +4,16 @@ import { f } from "./constants.js";
 import { AuthScreen } from "./components/Auth.jsx";
 import { Landing, NewGroup } from "./components/Landing.jsx";
 import { ParkApp } from "./components/ParkApp.jsx";
+import { HelpScreen } from "./components/Help.jsx";
+
 
 export default function Root() {
   var saved = loadSession();
   var [screen,setScreen] = useState(saved ? "landing" : "auth");
   var [user,setUser] = useState(saved ? saved.user : null);
   var [activeGroupId,setActiveGroupId] = useState(null);
+  var [helpReturnTo,setHelpReturnTo] = useState(null);
+
 
   if(saved) setAuthToken(saved.token);
 
@@ -28,6 +32,15 @@ export default function Root() {
     setUser(u);
     setScreen("landing");
   }
+
+  function openHelp() {
+  setHelpReturnTo(screen);
+  setScreen("help");
+}
+function closeHelp() {
+  setScreen(helpReturnTo || "landing");
+  setHelpReturnTo(null);
+}
 
   async function handleJoin(id) {
     if(user&&!user.guest) {
@@ -57,8 +70,10 @@ export default function Root() {
   }
 
   if(screen==="auth") return <AuthScreen onAuth={handleAuth}/>;
-  if(screen==="landing") return <Landing user={user} onJoin={handleJoin} onNew={function(){setScreen("newgroup");}} onLogout={handleLogout}/>;
+  if(screen==="landing") return <Landing user={user} onJoin={handleJoin} onNew={function(){setScreen("newgroup");}} onLogout={handleLogout} onOpenHelp={openHelp}/>;
   if(screen==="newgroup") return <NewGroup onBack={function(){setScreen("landing");}} onCreate={handleNew}/>;
-  if(screen==="app"&&activeGroupId) return <ParkApp groupId={activeGroupId} user={user} onLeave={function(){setScreen("landing");}} onLogout={handleLogout} onSwitchGroup={handleJoin} onNew={handleNew}/>;
+  if(screen==="app"&&activeGroupId) return <ParkApp groupId={activeGroupId} user={user} onLeave={function(){setScreen("landing");}} onLogout={handleLogout} onSwitchGroup={handleJoin} onNew={handleNew} onOpenHelp={openHelp}/>;
+  if(screen==="help") return <HelpScreen onBack={closeHelp}/>;
+
   return null;
 }

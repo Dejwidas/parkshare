@@ -4,7 +4,7 @@ import { sb, clearSession } from "../supabase.js";
 import { isPushSupported, getPushStatus, subscribePush, unsubscribePush } from "../push.js";
 
 // ============ MENU UŻYTKOWNIKA (dropdown w headerze) ============
-export function UserMenu({ user, onOpenSettings, onLogout }) {
+export function UserMenu({ user, onOpenSettings, onOpenHelp, onLogout }) {
   var [open,setOpen] = useState(false);
   var ref = useRef(null);
 
@@ -46,6 +46,13 @@ export function UserMenu({ user, onOpenSettings, onLogout }) {
               onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}
             >⚙  Ustawienia konta</button>
           )}
+
+            <button
+            onClick={function(){ setOpen(false); onOpenHelp(); }}
+            style={menuItemStyle}
+            onMouseEnter={function(e){e.currentTarget.style.background="#22253a";}}
+            onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}
+          >❓  Pomoc</button>
 
           <button
             onClick={function(){ setOpen(false); onLogout(); }}
