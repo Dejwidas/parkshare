@@ -61,7 +61,7 @@ function BottomNav({ view, setView, pendingCount, isGuest }) {
   );
 }
 
-export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew }) {
+export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew, onOpenHelp }) {
   var isMobile = useIsMobile();
   var [group,setGroup] = useState(null);
   var [spots,setSpots] = useState([]);
@@ -324,11 +324,12 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
               )}
             </>
           )}
-          <UserMenu
-            user={user}
-            onOpenSettings={function(){setView("account");}}
-            onLogout={onLogout}
-          />
+  <UserMenu
+  user={user}
+  onOpenSettings={function(){setView("account");}}
+  onOpenHelp={onOpenHelp}
+  onLogout={onLogout}
+/>
         </div>
       </div>
 
