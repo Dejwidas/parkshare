@@ -25,7 +25,7 @@ export function AuthScreen({ onAuth }) {
       setAuthToken(data.access_token);
       var uname = (data.user&&data.user.user_metadata&&data.user.user_metadata.name)||email;
       var u = {uid:data.user.id,name:uname,email:data.user.email,guest:false,token:data.access_token};
-      saveSession(u,data.access_token);
+     saveSession(u, data);
       onAuth(u);
     }catch(e){
       var msg=e.message;

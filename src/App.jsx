@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { sb, setAuthToken, loadSession, clearSession } from "./supabase.js";
+import { useState, useEffect } from "react";
+import { sb, setAuthToken, loadSession, clearSession, ensureValidSession } from "./supabase.js";
 import { f } from "./constants.js";
 import { AuthScreen } from "./components/Auth.jsx";
 import { Landing, NewGroup } from "./components/Landing.jsx";
@@ -12,6 +12,16 @@ export default function Root() {
   var [activeGroupId,setActiveGroupId] = useState(null);
 
   if(saved) setAuthToken(saved.token);
+
+  useEffect(function(){
+    ensureValidSession().then(function(s){
+      if (!s) {
+        clearSession();
+        setUser(null);
+        setScreen("auth");
+      }
+    });
+  }, []);
 
   function handleAuth(u) {
     setAuthToken(u.token||null);
