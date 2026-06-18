@@ -163,14 +163,14 @@ async function addSpot(){
   if(!newSpot.name.trim()){setNewSpotErr("Podaj numer miejsca.");return;}
   if(!newSpot.phone.trim()&&!newSpot.email.trim()){setNewSpotErr("Podaj numer telefonu lub adres e-mail.");return;}
   setNewSpotErr("");
+  var mySpotCountBefore = spots.filter(function(sp){return sp.owner_uid === user.uid;}).length;
   try{
     await sb.from("spots").insert({id:f.genId(),group_id:groupId,name:newSpot.name.trim(),desc:newSpot.desc,owner:newSpot.owner,owner_uid:user.uid,phone:newSpot.phone,email:newSpot.email,note:newSpot.note,type:newSpot.type,spot_visibility:newSpot.spotVisibility});
     setNewSpot({name:"",desc:"",owner:user.guest?"":user.name,phone:"",email:"",note:"",type:"underground",spotVisibility:"private"});
     setShowAdd(false); showToast("Miejsce dodane!"); loadAll();
-    maybeShowPushPrompt();
+    maybeShowPushPrompt(mySpotCountBefore === 0);
   }catch(e){showToast("Błąd: "+e.message,"error");}
 }
-
 //////////////////////////////////////////////////////////////////////////////nowe funkcje \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   function getPendingBookings(){
   return spots.filter(isOwner).flatMap(function(sp){
@@ -324,8 +324,9 @@ var myBookings = getMyBookings();
       </div>
     );
   }
-async function maybeShowPushPrompt() {
+async function maybeShowPushPrompt(isFirstSpot) {
   if (user.guest) return;
+  if (!isFirstSpot) return;
   if (!isPushSupported()) return;
   try {
     var status = await getPushStatus();
@@ -334,7 +335,6 @@ async function maybeShowPushPrompt() {
     setShowPushPrompt(true);
   } catch(e) {}
 }
-
   if(loading||!group) return <div style={{...c.app,display:"flex",alignItems:"center",justifyContent:"center"}}><Spinner/></div>;
 
   if(view==="account") return <AccountSettingsView user={user} onBack={function(){setView("browse");}} onLogout={onLogout}/>;
