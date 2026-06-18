@@ -324,11 +324,8 @@ var myBookings = getMyBookings();
       </div>
     );
   }
-
-  async function maybeShowPushPrompt() {
+async function maybeShowPushPrompt() {
   if (user.guest) return;
-  if (localStorage.getItem("ps_first_spot_done")) return;
-  localStorage.setItem("ps_first_spot_done", "1");
   if (!isPushSupported()) return;
   try {
     var status = await getPushStatus();
