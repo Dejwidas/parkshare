@@ -1,161 +1,69 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Polityka prywatności – ParkShare</title>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: #0f1117;
-    color: #e8eaf0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    line-height: 1.6;
-    font-size: 15px;
-  }
-  .container {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 32px 20px 64px;
-  }
-  .logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
-    text-decoration: none;
-    color: inherit;
-  }
-  .logo-mark {
-    width: 32px;
-    height: 32px;
-    background: #a78bfa;
-    color: #0f1117;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 17px;
-  }
-  .logo-name {
-    font-weight: 600;
-    font-size: 16px;
-    color: #e8eaf0;
-  }
-  h1 {
-    font-size: 26px;
-    font-weight: 700;
-    margin: 0 0 8px;
-    color: #e8eaf0;
-    line-height: 1.3;
-  }
-  .meta {
-    color: #6b7280;
-    font-size: 13px;
-    margin-bottom: 36px;
-  }
-  h2 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #a78bfa;
-    margin: 32px 0 14px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #2a2d3e;
-  }
-  p {
-    margin: 10px 0;
-    color: #d1d5db;
-  }
-  ol, ul {
-    padding-left: 24px;
-    margin: 10px 0;
-  }
-  ol li, ul li {
-    margin: 8px 0;
-    color: #d1d5db;
-  }
-  ul ul, ol ul, ol ol {
-    margin: 6px 0;
-  }
-  a {
-    color: #a78bfa;
-    text-decoration: none;
-  }
-  a:hover {
-    text-decoration: underline;
-  }
-  .footer {
-    margin-top: 48px;
-    padding-top: 20px;
-    border-top: 1px solid #2a2d3e;
-    text-align: center;
-    font-size: 12px;
-    color: #6b7280;
-  }
-  .footer a {
-    color: #6b7280;
-  }
-  .footer a:hover {
-    color: #a78bfa;
-  }
-  .placeholder {
-    background: #2a2d3e;
-    color: #fbbf24;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-family: monospace;
-    font-size: 13px;
-  }
-  @media (max-width: 480px) {
-    .container { padding: 24px 16px 48px; }
-    h1 { font-size: 22px; }
-    h2 { font-size: 16px; }
-    body { font-size: 14px; }
-  }
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Polityka prywatności — ParkShare</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f1117; color: #e8eaf0; padding: 40px 16px 80px; }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; text-decoration: none; }
+    .logo-icon { width: 40px; height: 40px; background: #7c3aed; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #fff; flex-shrink: 0; }
+    .logo-text { font-size: 20px; font-weight: 700; color: #a78bfa; }
+    h1 { font-size: 26px; font-weight: 700; color: #e8eaf0; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #6b7280; margin-bottom: 40px; }
+    h2 { font-size: 15px; font-weight: 700; color: #c4b5fd; margin: 32px 0 12px; }
+    p { font-size: 14px; color: #9ca3af; line-height: 1.7; margin-bottom: 10px; }
+    ul { padding-left: 20px; margin-bottom: 10px; }
+    ul li { font-size: 14px; color: #9ca3af; line-height: 1.7; margin-bottom: 4px; }
+    .card { background: #1a1d2e; border: 1px solid #2a2d3e; border-radius: 12px; padding: 20px 24px; margin-bottom: 8px; }
+    .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #2a2d3e; font-size: 12px; color: #374151; text-align: center; }
+    a { color: #a78bfa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { background: #2a2d3e; color: #c4b5fd; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+    .placeholder { background: #2a2d3e; color: #fbbf24; padding: 1px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+  </style>
 </head>
 <body>
-<div class="container">
+  <div class="wrap">
 
-  <a href="/" class="logo">
-    <span class="logo-mark">P</span>
-    <span class="logo-name">ParkShare</span>
-  </a>
+    <a href="/" class="logo">
+      <div class="logo-icon">P</div>
+      <div class="logo-text">ParkShare</div>
+    </a>
 
-  <h1>Polityka prywatności aplikacji ParkShare</h1>
-  <div class="meta">Obowiązuje od 10.05.2026 &middot; Ostatnia aktualizacja: 18.06.2026</div>
+    <h1>Polityka prywatności aplikacji ParkShare</h1>
+    <p class="subtitle">Obowiązuje od 01.05.2026 &nbsp;·&nbsp; Ostatnia aktualizacja: 18.06.2026</p>
 
-  <h2>§1. Administrator danych osobowych</h2>
-  <ol>
-    <li>Administratorem danych osobowych użytkowników aplikacji ParkShare, dostępnej pod adresem <a href="https://parkshare.pl">parkshare.pl</a>, jest osoba fizyczna, zwana dalej „Administratorem".</li>
-    <li>Kontakt z Administratorem we wszystkich sprawach dotyczących przetwarzania danych osobowych: <a href="mailto:kontakt@parkshare.pl">kontakt@parkshare.pl</a>.</li>
-    <li>Administrator nie wyznaczył inspektora ochrony danych — nie jest do tego zobowiązany na podstawie art. 37 RODO.</li>
-  </ol>
+    <div class="card">
+      <h2>§1. Administrator danych osobowych</h2>
+      <p>1. Administratorem danych osobowych użytkowników aplikacji ParkShare, dostępnej pod adresem <a href="https://parkshare.pl">parkshare.pl</a>, jest <span class="placeholder">[IMIĘ NAZWISKO]</span>, zamieszkały/-a pod adresem <span class="placeholder">[ADRES KORESPONDENCYJNY]</span>, zwany dalej „Administratorem".</p>
+      <p>2. Kontakt z Administratorem we wszystkich sprawach dotyczących przetwarzania danych osobowych: <a href="mailto:kontakt@parkshare.pl">kontakt@parkshare.pl</a>.</p>
+      <p>3. Administrator nie wyznaczył inspektora ochrony danych — nie jest do tego zobowiązany na podstawie art. 37 RODO.</p>
+    </div>
 
-  <h2>§2. Cele i podstawy prawne przetwarzania</h2>
-  <p>Dane osobowe użytkowników są przetwarzane w następujących celach i na następujących podstawach prawnych:</p>
-  <ol>
-    <li>Świadczenie usług aplikacji (założenie i prowadzenie konta, umożliwienie dodawania ogłoszeń i dokonywania rezerwacji) — art. 6 ust. 1 lit. b RODO (wykonanie umowy o świadczenie usług).</li>
-    <li>Wysyłka powiadomień push o rezerwacjach, anulowaniach i innych zdarzeniach w aplikacji — art. 6 ust. 1 lit. a RODO (zgoda wyrażona przez aktywację powiadomień w ustawieniach aplikacji).</li>
-    <li>Wysyłka wiadomości systemowych dotyczących konta (potwierdzenie rejestracji, reset hasła) — art. 6 ust. 1 lit. b RODO (wykonanie umowy).</li>
-    <li>Zapewnienie bezpieczeństwa aplikacji, wykrywanie nadużyć, prowadzenie logów technicznych — art. 6 ust. 1 lit. f RODO (uzasadniony interes Administratora polegający na ochronie aplikacji i jej użytkowników).</li>
-    <li>Obsługa zgłoszeń, reklamacji i korespondencji z użytkownikami — art. 6 ust. 1 lit. b oraz lit. f RODO.</li>
-    <li>Wykonanie obowiązków prawnych ciążących na Administratorze (np. odpowiedzi na żądania uprawnionych organów) — art. 6 ust. 1 lit. c RODO.</li>
-  </ol>
+    <div class="card">
+      <h2>§2. Cele i podstawy prawne przetwarzania</h2>
+      <p>Dane osobowe użytkowników są przetwarzane w następujących celach i na następujących podstawach prawnych:</p>
+      <p>1. Świadczenie usług aplikacji (założenie i prowadzenie konta, umożliwienie dodawania ogłoszeń i dokonywania rezerwacji) — art. 6 ust. 1 lit. b RODO (wykonanie umowy o świadczenie usług).</p>
+      <p>2. Wysyłka powiadomień push o rezerwacjach, anulowaniach i innych zdarzeniach w aplikacji — art. 6 ust. 1 lit. a RODO (zgoda wyrażona przez aktywację powiadomień w ustawieniach aplikacji).</p>
+      <p>3. Wysyłka wiadomości systemowych dotyczących konta (potwierdzenie rejestracji, reset hasła) — art. 6 ust. 1 lit. b RODO (wykonanie umowy).</p>
+      <p>4. Zapewnienie bezpieczeństwa aplikacji, wykrywanie nadużyć, prowadzenie logów technicznych — art. 6 ust. 1 lit. f RODO (uzasadniony interes Administratora polegający na ochronie aplikacji i jej użytkowników).</p>
+      <p>5. Obsługa zgłoszeń, reklamacji i korespondencji z użytkownikami — art. 6 ust. 1 lit. b oraz lit. f RODO.</p>
+      <p>6. Wykonanie obowiązków prawnych ciążących na Administratorze (np. odpowiedzi na żądania uprawnionych organów) — art. 6 ust. 1 lit. c RODO.</p>
+    </div>
 
-  <h2>§3. Zakres przetwarzanych danych</h2>
-  <p>W ramach korzystania z aplikacji przetwarzane są następujące kategorie danych:</p>
-  <ol>
-    <li>Dane podawane podczas rejestracji i korzystania z konta:
+    <div class="card">
+      <h2>§3. Zakres przetwarzanych danych</h2>
+      <p>W ramach korzystania z aplikacji przetwarzane są następujące kategorie danych:</p>
+      <p>1. <strong>Dane podawane podczas rejestracji i korzystania z konta:</strong></p>
       <ul>
         <li>adres e-mail,</li>
         <li>imię i nazwisko (lub pseudonim),</li>
         <li>hasło (w postaci zaszyfrowanego skrótu).</li>
       </ul>
-    </li>
-    <li>Dane podawane w ogłoszeniach i rezerwacjach:
+      <p>2. <strong>Dane podawane w ogłoszeniach i rezerwacjach:</strong></p>
       <ul>
         <li>nazwa lub numer miejsca parkingowego,</li>
         <li>numer telefonu kontaktowego (opcjonalnie),</li>
@@ -163,15 +71,13 @@
         <li>cena udostępnienia (jeśli podana),</li>
         <li>imię i numer telefonu osoby rezerwującej (w trakcie dokonywania rezerwacji).</li>
       </ul>
-    </li>
-    <li>Dane o aktywności w aplikacji:
+      <p>3. <strong>Dane o aktywności w aplikacji:</strong></p>
       <ul>
         <li>historia rezerwacji,</li>
         <li>przynależność do grup osiedlowych,</li>
         <li>role w grupach (administrator, członek).</li>
       </ul>
-    </li>
-    <li>Dane techniczne, zbierane automatycznie:
+      <p>4. <strong>Dane techniczne, zbierane automatycznie:</strong></p>
       <ul>
         <li>adres IP,</li>
         <li>informacje o urządzeniu, przeglądarce i systemie operacyjnym,</li>
@@ -179,108 +85,118 @@
         <li>identyfikator subskrypcji powiadomień push (jeśli użytkownik wyraził zgodę),</li>
         <li>dane przechowywane w pamięci lokalnej przeglądarki (localStorage), takie jak sesja logowania i preferencje aplikacji.</li>
       </ul>
-    </li>
-  </ol>
+    </div>
 
-  <h2>§4. Odbiorcy danych</h2>
-  <p>W celu świadczenia usług Administrator korzysta z usług następujących podmiotów przetwarzających:</p>
-  <ol>
-    <li><strong>Supabase, Inc.</strong> — usługi bazodanowe, uwierzytelnianie, hosting funkcji serwerowych, przechowywanie subskrypcji powiadomień. Dane przetwarzane w infrastrukturze obejmującej Unię Europejską oraz Stany Zjednoczone.</li>
-    <li><strong>Vercel, Inc.</strong> — hosting aplikacji oraz logi techniczne. Infrastruktura zlokalizowana m.in. w Stanach Zjednoczonych.</li>
-    <li><strong>home.pl S.A.</strong> — usługi poczty elektronicznej (wysyłka wiadomości systemowych). Infrastruktura zlokalizowana w Polsce.</li>
-    <li><strong>Google LLC</strong> (Firebase Cloud Messaging) oraz <strong>Apple Inc.</strong> (Apple Push Notification service) — dostarczanie powiadomień push odpowiednio na urządzenia z systemem Android oraz iOS. Dane (w tym treść powiadomień) są przekazywane na serwery zlokalizowane w Stanach Zjednoczonych.</li>
-    <li><strong>Cloudflare, Inc.</strong> — ochrona przed nadużyciami, infrastruktura sieciowa wykorzystywana przez powyższych dostawców.</li>
-  </ol>
-  <p>Dane mogą być również udostępnione uprawnionym organom państwowym na ich żądanie, w zakresie wymaganym przepisami prawa.</p>
+    <div class="card">
+      <h2>§4. Odbiorcy danych</h2>
+      <p>W celu świadczenia usług Administrator korzysta z usług następujących podmiotów przetwarzających:</p>
+      <ul>
+        <li><strong>Supabase, Inc.</strong> — usługi bazodanowe, uwierzytelnianie, hosting funkcji serwerowych, przechowywanie subskrypcji powiadomień. Dane przetwarzane w infrastrukturze obejmującej Unię Europejską oraz Stany Zjednoczone.</li>
+        <li><strong>Vercel, Inc.</strong> — hosting aplikacji oraz logi techniczne. Infrastruktura zlokalizowana m.in. w Stanach Zjednoczonych.</li>
+        <li><strong>home.pl S.A.</strong> — usługi poczty elektronicznej (wysyłka wiadomości systemowych). Infrastruktura zlokalizowana w Polsce.</li>
+        <li><strong>Google LLC</strong> (Firebase Cloud Messaging) oraz <strong>Apple Inc.</strong> (Apple Push Notification service) — dostarczanie powiadomień push odpowiednio na urządzenia z systemem Android oraz iOS. Dane (w tym treść powiadomień) są przekazywane na serwery zlokalizowane w Stanach Zjednoczonych.</li>
+        <li><strong>Cloudflare, Inc.</strong> — ochrona przed nadużyciami, infrastruktura sieciowa wykorzystywana przez powyższych dostawców.</li>
+      </ul>
+      <p>Dane mogą być również udostępnione uprawnionym organom państwowym na ich żądanie, w zakresie wymaganym przepisami prawa.</p>
+    </div>
 
-  <h2>§5. Transfer danych poza Europejski Obszar Gospodarczy</h2>
-  <p>Część odbiorców danych, w szczególności Supabase, Vercel, Google i Apple, przetwarza dane na serwerach zlokalizowanych poza Europejskim Obszarem Gospodarczym (głównie w Stanach Zjednoczonych).</p>
-  <p>Transfer ten odbywa się z zachowaniem standardów wymaganych RODO, w oparciu o:</p>
-  <ul>
-    <li>decyzję Komisji Europejskiej o stwierdzeniu odpowiedniego stopnia ochrony danych w ramach EU–US Data Privacy Framework (dla certyfikowanych podmiotów),</li>
-    <li>standardowe klauzule umowne (Standard Contractual Clauses) zatwierdzone przez Komisję Europejską.</li>
-  </ul>
-  <p>Szczegółowe informacje o zabezpieczeniach dostępne są na stronach poszczególnych dostawców.</p>
+    <div class="card">
+      <h2>§5. Transfer danych poza Europejski Obszar Gospodarczy</h2>
+      <p>1. Część odbiorców danych, w szczególności Supabase, Vercel, Google i Apple, przetwarza dane na serwerach zlokalizowanych poza Europejskim Obszarem Gospodarczym (głównie w Stanach Zjednoczonych).</p>
+      <p>2. Transfer ten odbywa się z zachowaniem standardów wymaganych RODO, w oparciu o:</p>
+      <ul>
+        <li>decyzję Komisji Europejskiej o stwierdzeniu odpowiedniego stopnia ochrony danych w ramach EU–US Data Privacy Framework (dla certyfikowanych podmiotów),</li>
+        <li>standardowe klauzule umowne (Standard Contractual Clauses) zatwierdzone przez Komisję Europejską.</li>
+      </ul>
+      <p>3. Szczegółowe informacje o zabezpieczeniach dostępne są na stronach poszczególnych dostawców.</p>
+    </div>
 
-  <h2>§6. Okres przechowywania danych</h2>
-  <ol>
-    <li>Dane konta — przechowywane przez okres prowadzenia konta, do momentu jego usunięcia przez użytkownika lub Administratora.</li>
-    <li>Dane rezerwacji i ogłoszeń — przechowywane przez okres aktywności konta; po jego usunięciu są usuwane wraz z kontem.</li>
-    <li>Subskrypcje powiadomień push — przechowywane do momentu wycofania zgody lub usunięcia konta.</li>
-    <li>Dane techniczne i logi — przechowywane przez okres do 12 miesięcy w celach bezpieczeństwa i diagnostyki.</li>
-    <li>Korespondencja z użytkownikami — przechowywana przez okres do 3 lat od ostatniego kontaktu.</li>
-    <li>Dane wymagane przepisami prawa — przez okres określony w odpowiednich przepisach.</li>
-  </ol>
+    <div class="card">
+      <h2>§6. Okres przechowywania danych</h2>
+      <p>1. <strong>Dane konta</strong> — przechowywane przez okres prowadzenia konta, do momentu jego usunięcia przez użytkownika lub Administratora.</p>
+      <p>2. <strong>Dane rezerwacji i ogłoszeń</strong> — przechowywane przez okres aktywności konta; po jego usunięciu są usuwane wraz z kontem.</p>
+      <p>3. <strong>Subskrypcje powiadomień push</strong> — przechowywane do momentu wycofania zgody lub usunięcia konta.</p>
+      <p>4. <strong>Dane techniczne i logi</strong> — przechowywane przez okres do 12 miesięcy w celach bezpieczeństwa i diagnostyki.</p>
+      <p>5. <strong>Korespondencja z użytkownikami</strong> — przechowywana przez okres do 3 lat od ostatniego kontaktu.</p>
+      <p>6. <strong>Dane wymagane przepisami prawa</strong> — przez okres określony w odpowiednich przepisach.</p>
+    </div>
 
-  <h2>§7. Prawa użytkownika</h2>
-  <p>W związku z przetwarzaniem danych osobowych użytkownikowi przysługują następujące prawa:</p>
-  <ol>
-    <li>Prawo dostępu do swoich danych oraz otrzymania ich kopii (art. 15 RODO).</li>
-    <li>Prawo do sprostowania (poprawiania) danych (art. 16 RODO).</li>
-    <li>Prawo do usunięcia danych („prawo do bycia zapomnianym") (art. 17 RODO). Użytkownik może w każdej chwili usunąć swoje konto wraz ze wszystkimi powiązanymi danymi poprzez funkcję „Usuń konto" dostępną w ustawieniach aplikacji.</li>
-    <li>Prawo do ograniczenia przetwarzania (art. 18 RODO).</li>
-    <li>Prawo do przenoszenia danych (art. 20 RODO) — w zakresie danych przetwarzanych na podstawie zgody lub umowy.</li>
-    <li>Prawo do sprzeciwu wobec przetwarzania (art. 21 RODO) — w odniesieniu do danych przetwarzanych na podstawie uzasadnionego interesu Administratora.</li>
-    <li>Prawo do cofnięcia zgody w dowolnym momencie — bez wpływu na zgodność z prawem przetwarzania dokonanego przed jej cofnięciem. Dotyczy w szczególności zgody na powiadomienia push, którą można wycofać w ustawieniach aplikacji.</li>
-    <li>Prawo wniesienia skargi do organu nadzorczego — <strong>Prezesa Urzędu Ochrony Danych Osobowych</strong> (ul. Stawki 2, 00-193 Warszawa, <a href="https://www.uodo.gov.pl" target="_blank" rel="noopener noreferrer">www.uodo.gov.pl</a>) — jeżeli użytkownik uzna, że przetwarzanie jego danych narusza przepisy prawa.</li>
-  </ol>
-  <p>W celu realizacji powyższych praw należy skontaktować się pod adresem: <a href="mailto:kontakt@parkshare.pl">kontakt@parkshare.pl</a>. Administrator udzieli odpowiedzi bez zbędnej zwłoki, nie później niż w terminie 30 dni od otrzymania żądania.</p>
+    <div class="card">
+      <h2>§7. Prawa użytkownika</h2>
+      <p>W związku z przetwarzaniem danych osobowych użytkownikowi przysługują następujące prawa:</p>
+      <p>1. Prawo dostępu do swoich danych oraz otrzymania ich kopii (art. 15 RODO).</p>
+      <p>2. Prawo do sprostowania (poprawiania) danych (art. 16 RODO).</p>
+      <p>3. Prawo do usunięcia danych („prawo do bycia zapomnianym") (art. 17 RODO). Użytkownik może w każdej chwili usunąć swoje konto wraz ze wszystkimi powiązanymi danymi poprzez funkcję „Usuń konto" dostępną w ustawieniach aplikacji.</p>
+      <p>4. Prawo do ograniczenia przetwarzania (art. 18 RODO).</p>
+      <p>5. Prawo do przenoszenia danych (art. 20 RODO) — w zakresie danych przetwarzanych na podstawie zgody lub umowy.</p>
+      <p>6. Prawo do sprzeciwu wobec przetwarzania (art. 21 RODO) — w odniesieniu do danych przetwarzanych na podstawie uzasadnionego interesu Administratora.</p>
+      <p>7. Prawo do cofnięcia zgody w dowolnym momencie — bez wpływu na zgodność z prawem przetwarzania dokonanego przed jej cofnięciem. Dotyczy w szczególności zgody na powiadomienia push, którą można wycofać w ustawieniach aplikacji.</p>
+      <p>8. Prawo wniesienia skargi do organu nadzorczego — <strong>Prezesa Urzędu Ochrony Danych Osobowych</strong> (ul. Stawki 2, 00-193 Warszawa, <a href="https://www.uodo.gov.pl" target="_blank" rel="noopener noreferrer">www.uodo.gov.pl</a>) — jeżeli użytkownik uzna, że przetwarzanie jego danych narusza przepisy prawa.</p>
+      <p>W celu realizacji powyższych praw należy skontaktować się pod adresem: <a href="mailto:kontakt@parkshare.pl">kontakt@parkshare.pl</a>. Administrator udzieli odpowiedzi bez zbędnej zwłoki, nie później niż w terminie 30 dni od otrzymania żądania.</p>
+    </div>
 
-  <h2>§8. Pliki cookies i podobne technologie</h2>
-  <ol>
-    <li>Aplikacja korzysta z technologii lokalnego przechowywania danych w przeglądarce użytkownika (localStorage, IndexedDB, Cache API w ramach Progressive Web App), a także z plików cookies pochodzących od podmiotów świadczących usługi infrastrukturalne (m.in. Cloudflare — ciasteczko techniczne <code>__cf_bm</code> służące do ochrony przed automatycznym ruchem).</li>
-    <li>Wykorzystywane technologie służą wyłącznie celom funkcjonalnym, takim jak:
+    <div class="card">
+      <h2>§8. Pliki cookies i podobne technologie</h2>
+      <p>1. Aplikacja korzysta z technologii lokalnego przechowywania danych w przeglądarce użytkownika (localStorage, IndexedDB, Cache API w ramach Progressive Web App), a także z plików cookies pochodzących od podmiotów świadczących usługi infrastrukturalne (m.in. Cloudflare — ciasteczko techniczne <code>__cf_bm</code> służące do ochrony przed automatycznym ruchem).</p>
+      <p>2. Wykorzystywane technologie służą wyłącznie celom funkcjonalnym, takim jak:</p>
       <ul>
         <li>utrzymanie sesji zalogowanego użytkownika,</li>
         <li>zapamiętanie ostatnio przeglądanej grupy i preferencji,</li>
         <li>działanie aplikacji w trybie offline (PWA, Service Worker),</li>
         <li>przechowywanie tokenów subskrypcji powiadomień push.</li>
       </ul>
-    </li>
-    <li>Aplikacja nie korzysta z plików cookies ani innych technologii w celach marketingowych, analitycznych ani profilujących.</li>
-    <li>Użytkownik może wyłączyć lub usunąć dane przechowywane lokalnie poprzez ustawienia swojej przeglądarki — może to jednak skutkować ograniczeniem funkcjonalności aplikacji (np. koniecznością ponownego logowania).</li>
-  </ol>
+      <p>3. Aplikacja nie korzysta z plików cookies ani innych technologii w celach marketingowych, analitycznych ani profilujących.</p>
+      <p>4. Użytkownik może wyłączyć lub usunąć dane przechowywane lokalnie poprzez ustawienia swojej przeglądarki — może to jednak skutkować ograniczeniem funkcjonalności aplikacji (np. koniecznością ponownego logowania).</p>
+    </div>
 
-  <h2>§9. Dobrowolność podania danych</h2>
-  <p>Podanie danych osobowych jest dobrowolne, jednak ich brak uniemożliwia korzystanie z aplikacji w pełnym zakresie:</p>
-  <ol>
-    <li>Adres e-mail i hasło są niezbędne do założenia konta.</li>
-    <li>Imię oraz numer telefonu lub adres e-mail są niezbędne do dodania ogłoszenia o miejscu parkingowym (dane kontaktowe dla osób rezerwujących).</li>
-    <li>Zgoda na powiadomienia push jest całkowicie dobrowolna i jej brak nie ogranicza pozostałych funkcji aplikacji.</li>
-  </ol>
+    <div class="card">
+      <h2>§9. Dobrowolność podania danych</h2>
+      <p>Podanie danych osobowych jest dobrowolne, jednak ich brak uniemożliwia korzystanie z aplikacji w pełnym zakresie:</p>
+      <p>1. Adres e-mail i hasło są niezbędne do założenia konta.</p>
+      <p>2. Imię oraz numer telefonu lub adres e-mail są niezbędne do dodania ogłoszenia o miejscu parkingowym (dane kontaktowe dla osób rezerwujących).</p>
+      <p>3. Zgoda na powiadomienia push jest całkowicie dobrowolna i jej brak nie ogranicza pozostałych funkcji aplikacji.</p>
+    </div>
 
-  <h2>§10. Zautomatyzowane podejmowanie decyzji</h2>
-  <p>W ramach aplikacji nie dochodzi do zautomatyzowanego podejmowania decyzji, w tym profilowania, które wywoływałoby skutki prawne lub w podobny sposób istotnie wpływało na użytkownika.</p>
+    <div class="card">
+      <h2>§10. Zautomatyzowane podejmowanie decyzji</h2>
+      <p>W ramach aplikacji nie dochodzi do zautomatyzowanego podejmowania decyzji, w tym profilowania, które wywoływałoby skutki prawne lub w podobny sposób istotnie wpływało na użytkownika.</p>
+    </div>
 
-  <h2>§11. Wiek użytkowników</h2>
-  <p>Aplikacja przeznaczona jest dla osób, które ukończyły 16 lat. Osoby poniżej 16 roku życia mogą korzystać z aplikacji wyłącznie za zgodą rodzica lub opiekuna prawnego.</p>
+    <div class="card">
+      <h2>§11. Wiek użytkowników</h2>
+      <p>Aplikacja przeznaczona jest dla osób, które ukończyły 16 lat. Osoby poniżej 16 roku życia mogą korzystać z aplikacji wyłącznie za zgodą rodzica lub opiekuna prawnego.</p>
+    </div>
 
-  <h2>§12. Bezpieczeństwo danych</h2>
-  <p>Administrator stosuje środki techniczne i organizacyjne odpowiednie do ryzyka, w szczególności:</p>
-  <ul>
-    <li>szyfrowanie połączeń (HTTPS / TLS),</li>
-    <li>szyfrowane przechowywanie haseł (z wykorzystaniem algorytmu skrótu),</li>
-    <li>kontrolę dostępu do bazy danych poprzez mechanizmy uwierzytelniania i autoryzacji,</li>
-    <li>regularne aktualizacje wykorzystywanego oprogramowania.</li>
-  </ul>
+    <div class="card">
+      <h2>§12. Bezpieczeństwo danych</h2>
+      <p>Administrator stosuje środki techniczne i organizacyjne odpowiednie do ryzyka, w szczególności:</p>
+      <ul>
+        <li>szyfrowanie połączeń (HTTPS / TLS),</li>
+        <li>szyfrowane przechowywanie haseł (z wykorzystaniem algorytmu skrótu),</li>
+        <li>kontrolę dostępu do bazy danych poprzez mechanizmy uwierzytelniania i autoryzacji,</li>
+        <li>regularne aktualizacje wykorzystywanego oprogramowania.</li>
+      </ul>
+    </div>
 
-  <h2>§13. Zmiany polityki prywatności</h2>
-  <ol>
-    <li>Administrator zastrzega sobie prawo do wprowadzania zmian w niniejszej Polityce prywatności.</li>
-    <li>O istotnych zmianach użytkownicy będą informowani z co najmniej 14-dniowym wyprzedzeniem — poprzez komunikat w aplikacji oraz wiadomość e-mail wysłaną na adres przypisany do konta.</li>
-    <li>Aktualna wersja Polityki prywatności jest zawsze dostępna pod adresem <a href="https://parkshare.pl/polityka-prywatnosci.html">parkshare.pl/polityka-prywatnosci.html</a>.</li>
-  </ol>
+    <div class="card">
+      <h2>§13. Zmiany polityki prywatności</h2>
+      <p>1. Administrator zastrzega sobie prawo do wprowadzania zmian w niniejszej Polityce prywatności.</p>
+      <p>2. O istotnych zmianach użytkownicy będą informowani z co najmniej 14-dniowym wyprzedzeniem — poprzez komunikat w aplikacji oraz wiadomość e-mail wysłaną na adres przypisany do konta.</p>
+      <p>3. Aktualna wersja Polityki prywatności jest zawsze dostępna pod adresem <a href="https://parkshare.pl/polityka-prywatnosci.html">parkshare.pl/polityka-prywatnosci.html</a>.</p>
+    </div>
 
-  <h2>§14. Kontakt</h2>
-  <p>W sprawach związanych z przetwarzaniem danych osobowych prosimy o kontakt:</p>
-  <ul>
-    <li>e-mail: <a href="mailto:kontakt@parkshare.pl">kontakt@parkshare.pl</a></li>
-    </ul>
+    <div class="card">
+      <h2>§14. Kontakt</h2>
+      <p>W sprawach związanych z przetwarzaniem danych osobowych prosimy o kontakt:</p>
+      <ul>
+        <li>e-mail: <a href="mailto:kontakt@parkshare.pl">kontakt@parkshare.pl</a></li>
+              </ul>
+    </div>
 
-  <div class="footer">
-    &copy; 2026 ParkShare &middot; <a href="/">Wróć do aplikacji</a> &middot; <a href="mailto:kontakt@parkshare.pl">kontakt@parkshare.pl</a>
+    <div class="footer">
+      &copy; 2026 ParkShare &nbsp;·&nbsp; <a href="/">Wróć do aplikacji</a> &nbsp;·&nbsp; <a href="mailto:kontakt@parkshare.pl">kontakt@parkshare.pl</a>
+    </div>
+
   </div>
-
-</div>
 </body>
 </html>
