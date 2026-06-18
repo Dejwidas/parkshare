@@ -1,9 +1,12 @@
 // supabase/functions/send-push/index.ts
-// Edge Function: wysyła powiadomienie push do właściciela miejsca parkingowego
-// po zarezerwowaniu jednego z jego slotów.
+// Edge Function: wysyła powiadomienia push dla dwóch zdarzeń:
+//   type="new_booking"     → do właściciela miejsca o nowej rezerwacji  (domyślny)
+//   type="owner_cancelled" → do rezerwującego o anulowaniu rezerwacji
 //
-// Input: POST { slot_id: string }
-// Auth: wymaga JWT użytkownika (osoba rezerwująca)
+// Input: POST { slot_id: string, type?: "new_booking" | "owner_cancelled" }
+//
+// UWAGA: dla "owner_cancelled" funkcję trzeba wywołać ZANIM rezerwacja zostanie
+// wyczyszczona z tabeli slots — inaczej nie da się ustalić odbiorcy.
 
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -26,43 +29,54 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { slot_id } = await req.json();
+    const reqBody = await req.json();
+    const slot_id = reqBody.slot_id;
+    const type = reqBody.type || "new_booking";
     if (!slot_id) return json({ error: "slot_id required" }, 400);
 
-    // Service role — omija RLS, możemy czytać wszystko i kasować wygasłe subskrypcje
     const supa = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // 1. Slot → spot_id + dane do treści
     const { data: slot, error: e1 } = await supa
       .from("slots")
-      .select("id, spot_id, date, all_day, from_time, to_time, booked_by")
+      .select("id, spot_id, date, all_day, from_time, to_time, booked_by, booked_by_uid")
       .eq("id", slot_id)
       .single();
     if (e1 || !slot) return json({ error: "slot not found" }, 404);
 
-    // 2. Spot → owner_uid + name
     const { data: spot, error: e2 } = await supa
       .from("spots")
       .select("id, name, owner_uid")
       .eq("id", slot.spot_id)
       .single();
-    if (e2 || !spot || !spot.owner_uid) return json({ error: "spot/owner not found" }, 404);
+    if (e2 || !spot) return json({ error: "spot not found" }, 404);
 
-    // 3. Subskrypcje właściciela
+    const when = slot.all_day ? "cały dzień" : (slot.from_time + "–" + slot.to_time);
+
+    let recipient_uid: string | null;
+    let title: string;
+    let body_text: string;
+
+    if (type === "owner_cancelled") {
+      recipient_uid = slot.booked_by_uid;
+      title = "Rezerwacja anulowana";
+      body_text = "Właściciel anulował Twoją rezerwację miejsca „" + spot.name + "” na " + slot.date + " (" + when + ")";
+    } else {
+      // new_booking (default)
+      recipient_uid = spot.owner_uid;
+      title = "Nowa rezerwacja w ParkShare";
+      body_text = (slot.booked_by || "Ktoś") + " zarezerwował Twoje miejsce „" + spot.name + "” na " + slot.date + " (" + when + ")";
+    }
+
+    if (!recipient_uid) return json({ ok: true, sent: 0, reason: "no recipient" });
+
     const { data: subs, error: e3 } = await supa
       .from("push_subscriptions")
       .select("id, endpoint, p256dh, auth")
-      .eq("user_id", spot.owner_uid);
+      .eq("user_id", recipient_uid);
     if (e3) return json({ error: e3.message }, 500);
     if (!subs || subs.length === 0) return json({ ok: true, sent: 0, reason: "no subscriptions" });
 
-    // 4. Wyślij push do każdej subskrypcji
-    const when = slot.all_day ? "cały dzień" : (slot.from_time + "–" + slot.to_time);
-    const payload = JSON.stringify({
-      title: "Nowa rezerwacja w ParkShare",
-      body: (slot.booked_by || "Ktoś") + " zarezerwował Twoje miejsce „" + spot.name + "” na " + slot.date + " (" + when + ")",
-      url: "/"
-    });
+    const payload = JSON.stringify({ title, body: body_text, url: "/" });
 
     let sent = 0;
     const expired: string[] = [];
@@ -74,14 +88,13 @@ Deno.serve(async (req) => {
         );
         sent++;
       } catch (err: any) {
-        // 410 Gone / 404 Not Found → subskrypcja wygasła, kasuj
         if (err.statusCode === 410 || err.statusCode === 404) expired.push(sub.id);
         else console.error("push send error:", err.statusCode, err.body);
       }
     }
     if (expired.length > 0) await supa.from("push_subscriptions").delete().in("id", expired);
 
-    return json({ ok: true, sent, expired: expired.length });
+    return json({ ok: true, sent, expired: expired.length, type });
   } catch (e: any) {
     console.error(e);
     return json({ error: e.message || "internal error" }, 500);

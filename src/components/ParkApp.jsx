@@ -6,6 +6,8 @@ import { ParkLogo, ConfirmDialog, Spinner } from "./UI.jsx";
 import { GroupSwitcher } from "./GroupSwitcher.jsx";
 import { AdminPanel } from "./AdminPanel.jsx";
 import { UserMenu, AccountSettingsView } from "./AccountSettings.jsx";
+import { PushPromptModal } from "./PushPrompt.jsx";
+import { isPushSupported, getPushStatus } from "../push.js";
 
 
 function InviteModal({ group, onClose, isMobile }) {
@@ -96,6 +98,7 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
   var [editSpotModal,setEditSpotModal] = useState(null);
   var [editSlotModal, setEditSlotModal] = useState(null);
   var subRef = useRef(null);
+  var [showPushPrompt, setShowPushPrompt] = useState(false);
 
   var modalStyle = isMobile ? c.modalMobile : c.modal;
 
@@ -156,16 +159,17 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
   }
   var pendingBookings = getPendingBookings();
 
-  async function addSpot(){
-    if(!newSpot.name.trim()){setNewSpotErr("Podaj numer miejsca.");return;}
-    if(!newSpot.phone.trim()&&!newSpot.email.trim()){setNewSpotErr("Podaj numer telefonu lub adres e-mail.");return;}
-    setNewSpotErr("");
-    try{
-      await sb.from("spots").insert({id:f.genId(),group_id:groupId,name:newSpot.name.trim(),desc:newSpot.desc,owner:newSpot.owner,owner_uid:user.uid,phone:newSpot.phone,email:newSpot.email,note:newSpot.note,type:newSpot.type,spot_visibility:newSpot.spotVisibility});
-      setNewSpot({name:"",desc:"",owner:user.guest?"":user.name,phone:"",email:"",note:"",type:"underground",spotVisibility:"private"});
-      setShowAdd(false); showToast("Miejsce dodane!"); loadAll();
-    }catch(e){showToast("Błąd: "+e.message,"error");}
-  }
+async function addSpot(){
+  if(!newSpot.name.trim()){setNewSpotErr("Podaj numer miejsca.");return;}
+  if(!newSpot.phone.trim()&&!newSpot.email.trim()){setNewSpotErr("Podaj numer telefonu lub adres e-mail.");return;}
+  setNewSpotErr("");
+  try{
+    await sb.from("spots").insert({id:f.genId(),group_id:groupId,name:newSpot.name.trim(),desc:newSpot.desc,owner:newSpot.owner,owner_uid:user.uid,phone:newSpot.phone,email:newSpot.email,note:newSpot.note,type:newSpot.type,spot_visibility:newSpot.spotVisibility});
+    setNewSpot({name:"",desc:"",owner:user.guest?"":user.name,phone:"",email:"",note:"",type:"underground",spotVisibility:"private"});
+    setShowAdd(false); showToast("Miejsce dodane!"); loadAll();
+    maybeShowPushPrompt();
+  }catch(e){showToast("Błąd: "+e.message,"error");}
+}
 
 //////////////////////////////////////////////////////////////////////////////nowe funkcje \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
   function getPendingBookings(){
@@ -241,13 +245,15 @@ var myBookings = getMyBookings();
   }
 
   async function cancelBooking(id){
-    confirm("Czy na pewno chcesz anulować tę rezerwację?", async function(){
-      try{
-        await sb.from("slots").update({booked:false,booked_by:null,booker_phone:null,booked_at:null,booked_by_uid:null},"?id=eq."+id);
-        showToast("Rezerwacja anulowana.","warn"); loadAll();
-      }catch(e){}
-    });
-  }
+  confirm("Czy na pewno chcesz anulować tę rezerwację?", async function(){
+    try{
+      // Powiadom rezerwującego ZANIM wyczyścimy dane (potem nie będzie wiadomo do kogo wysłać)
+      try { await sb.invoke("send-push", { slot_id: id, type: "owner_cancelled" }); } catch(e) { console.error("push:", e); }
+      await sb.from("slots").update({booked:false,booked_by:null,booker_phone:null,booked_at:null,booked_by_uid:null},"?id=eq."+id);
+      showToast("Rezerwacja anulowana.","warn"); loadAll();
+    }catch(e){}
+  });
+}
 
   async function acceptBooking(id) {
     try {
@@ -318,6 +324,19 @@ var myBookings = getMyBookings();
       </div>
     );
   }
+
+  async function maybeShowPushPrompt() {
+  if (user.guest) return;
+  if (localStorage.getItem("ps_first_spot_done")) return;
+  localStorage.setItem("ps_first_spot_done", "1");
+  if (!isPushSupported()) return;
+  try {
+    var status = await getPushStatus();
+    if (status.subscribed) return;
+    if (status.permission === "denied") return;
+    setShowPushPrompt(true);
+  } catch(e) {}
+}
 
   if(loading||!group) return <div style={{...c.app,display:"flex",alignItems:"center",justifyContent:"center"}}><Spinner/></div>;
 
@@ -774,6 +793,8 @@ var myBookings = getMyBookings();
           </div>
         </div>
       )}
+
+      {showPushPrompt && <PushPromptModal user={user} showToast={showToast} onClose={function(){setShowPushPrompt(false);}}/>}
 
       {confirmDialog&&<ConfirmDialog msg={confirmDialog.msg} onConfirm={function(){confirmDialog.onConfirm();setConfirmDialog(null);}} onCancel={function(){setConfirmDialog(null);}}/>}
       {showInvite&&<InviteModal group={group} onClose={function(){setShowInvite(false);}} isMobile={isMobile}/>}
