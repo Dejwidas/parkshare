@@ -54,6 +54,15 @@ export function UserMenu({ user, onOpenSettings, onOpenHelp, onLogout }) {
             onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}
           >❓  Pomoc</button>
 
+          <a  href="/regulamin.html"
+            target="_blank"
+  rel="noopener noreferrer"
+  onClick={function(){ setOpen(false); }}
+  style={{...menuItemStyle, textDecoration:"none", display:"block"}}
+  onMouseEnter={function(e){e.currentTarget.style.background="#22253a";}}
+  onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}>
+   Regulamin</a>
+
           <button
             onClick={function(){ setOpen(false); onLogout(); }}
             style={{...menuItemStyle,color:"#f87171",borderTop:!isGuest?"1px solid #2a2d3e":"none"}}

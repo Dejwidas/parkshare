@@ -8,6 +8,7 @@ import { AdminPanel } from "./AdminPanel.jsx";
 import { UserMenu, AccountSettingsView } from "./AccountSettings.jsx";
 import { PushPromptModal } from "./PushPrompt.jsx";
 import { isPushSupported, getPushStatus } from "../push.js";
+import { Footer } from "./UI.jsx";
 
 
 function InviteModal({ group, onClose, isMobile }) {
@@ -653,6 +654,8 @@ async function maybeShowPushPrompt(isFirstSpot) {
             })}
           </div>
         )}
+
+        <Footer/>
       </div>
 
       {/* Bottom nav (mobile only) */}
@@ -660,14 +663,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
   <BottomNav view={view} setView={setView} pendingCount={pendingBookings.length} myBookingsCount={myBookings.length} isGuest={user.guest}/>
 )}
 
-      {!isMobile && (
-        <div style={{textAlign:"center",padding:"24px 0 8px",borderTop:"1px solid #1a1d2e"}}>
-          <div style={{fontSize:11,color:"#374151"}}>
-            {"v0.27 · "}
-            <a href="mailto:kontakt@parkshare.pl" style={{color:"#4b5563",textDecoration:"none"}}>kontakt@parkshare.pl</a>
-          </div>
-        </div>
-      )}
+
 
       {contactModal&&(
         <div style={c.overlay} onClick={function(){setContactModal(null);}}>

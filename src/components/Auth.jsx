@@ -8,14 +8,16 @@ export function AuthScreen({ onAuth }) {
   var [mode,setMode] = useState("choose");
   var [name,setName] = useState(""); var [email,setEmail] = useState(""); var [pass,setPass] = useState("");
   var [err,setErr] = useState(""); var [loading,setLoading] = useState(false); var [verifyMsg,setVerifyMsg] = useState(false);
+  var [acceptTerms,setAcceptTerms] = useState(false);
 
-  async function register() {
-    if(!name.trim()||!email.trim()||!pass.trim()){setErr("Uzupelnij wszystkie pola.");return;}
-    if(pass.length<6){setErr("Haslo musi miec co najmniej 6 znakow.");return;}
-    setLoading(true);setErr("");
-    try{await sb.auth.signUp(email.trim(),pass,name.trim());setVerifyMsg(true);}
-    catch(e){setErr("Blad rejestracji: "+e.message);}finally{setLoading(false);}
-  }
+async function register() {
+  if(!name.trim()||!email.trim()||!pass.trim()){setErr("Uzupelnij wszystkie pola.");return;}
+  if(pass.length<6){setErr("Haslo musi miec co najmniej 6 znakow.");return;}
+  if(!acceptTerms){setErr("Musisz zaakceptować regulamin, aby się zarejestrować.");return;}
+  setLoading(true);setErr("");
+  try{await sb.auth.signUp(email.trim(),pass,name.trim());setVerifyMsg(true);}
+  catch(e){setErr("Blad rejestracji: "+e.message);}finally{setLoading(false);}
+}
 
   async function login() {
     if(!email.trim()||!pass.trim()){setErr("Uzupelnij pola.");return;}
@@ -128,8 +130,24 @@ if(mode==="reset-sent") return (
           {mode==="register"&&<input style={{...c.input,marginBottom:10}} placeholder="Imie i nazwisko" value={name} onChange={function(e){setName(e.target.value);}}/>}
           <input style={{...c.input,marginBottom:10}} type="email" placeholder="E-mail" value={email} onChange={function(e){setEmail(e.target.value);}}/>
           <input style={{...c.input,marginBottom:10}} type="password" placeholder="Haslo (min. 6 znakow)" value={pass} onChange={function(e){setPass(e.target.value);}}/>
-          {err&&<div style={{fontSize:12,color:"#f87171",marginBottom:10}}>{err}</div>}
-          <button style={{...c.btn("primary"),width:"100%",opacity:loading?0.6:1}} onClick={mode==="register"?register:login} disabled={loading}>
+{mode==="register"&&(
+  <label style={{display:"flex",alignItems:"flex-start",gap:8,fontSize:12,color:"#9ca3af",marginBottom:12,cursor:"pointer",lineHeight:1.5}}>
+    <input
+      type="checkbox"
+      checked={acceptTerms}
+      onChange={function(e){setAcceptTerms(e.target.checked);}}
+      style={{marginTop:2,accentColor:"#a78bfa",cursor:"pointer",flexShrink:0}}
+    />
+    <span>
+      Akceptuję{" "}
+      <a href="/regulamin.html" target="_blank" rel="noopener noreferrer" style={{color:"#a78bfa",textDecoration:"underline"}}>regulamin</a>
+      {" "}i potwierdzam zapoznanie się z{" "}
+      <a href="/polityka-prywatnosci.html" target="_blank" rel="noopener noreferrer" style={{color:"#a78bfa",textDecoration:"underline"}}>polityką prywatności</a>.
+    </span>
+  </label>
+)}
+{err&&<div style={{fontSize:12,color:"#f87171",marginBottom:10}}>{err}</div>}
+<button style={{...c.btn("primary"),width:"100%",opacity:(loading||(mode==="register"&&!acceptTerms))?0.5:1}} onClick={mode==="register"?register:login} disabled={loading||(mode==="register"&&!acceptTerms)}>
             {loading?"Ladowanie...":mode==="register"?"Zarejestruj sie":"Zaloguj"}
           </button>
           <div style={{fontSize:12,color:"#4b5563",textAlign:"center",marginTop:12,cursor:"pointer"}}
