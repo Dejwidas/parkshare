@@ -575,7 +575,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:8,flexWrap:"wrap"}}>
                     <div style={{minWidth:0,flex:1}}>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                        <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>{sp.type==="outdoor"?"🌤 Naziemne":"🏗 Garaż"} · nr {sp.name}</div>
+                        <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>{sp.type==="outdoor"?"🌤 Naziemne":"⬇️ Garaż"} · nr {sp.name}</div>
                         {hasPending&&<span style={c.newBadge}>! Nowa</span>}
                       </div>
                       <div style={{fontSize:12,color:"#6b7280",marginTop:2}}>{sp.desc||"Brak opisu"}</div>
