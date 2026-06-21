@@ -25,17 +25,19 @@ export function GroupSwitcher({ groupId, groupName, user, isAdmin, onJoin, onNew
     })();
   },[open]);
 
-  async function join(){
-    var t = code.trim();
-    try{
-      var rows = await sb.from("groups").select("*","&id=eq."+t);
-      if(!rows.length){setErr("Nie znaleziono grupy.");return;}
+async function join(){
+  var t = code.trim();
+  try{
+    var rows = await sb.from("groups").select("*","&id=eq."+t);
+    if(!rows.length){setErr("Nie znaleziono grupy.");return;}
+    var existing = await sb.from("user_groups").select("role","&user_id=eq."+user.uid+"&group_id=eq."+t);
+    if(!existing.length){
       await sb.from("user_groups").upsert({user_id:user.uid,group_id:t,role:"member",user_name:user.name,user_email:user.email},"user_id,group_id");
-      setOpen(false);setShowJoinForm(false);setCode("");setErr("");
-      onJoin(t);
-    }catch(e){setErr("Błąd: "+e.message);}
-  }
-
+    }
+    setOpen(false);setShowJoinForm(false);setCode("");setErr("");
+    onJoin(t);
+  }catch(e){setErr("Błąd: "+e.message);}
+}
   async function createNew(){
     if(!newName.trim()) return;
     setOpen(false);setShowNewForm(false);setNewName("");

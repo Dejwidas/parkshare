@@ -87,12 +87,18 @@ async function checkMembership(uid, gid) {
 
 async function handleJoin(id) {
   if(user&&!user.guest) {
-    try { await sb.from("user_groups").upsert({user_id:user.uid,group_id:id,role:"member",user_name:user.name,user_email:user.email},"user_id,group_id"); } catch(e) {}
+    try {
+      var existing = await sb.from("user_groups").select("role","&user_id=eq."+user.uid+"&group_id=eq."+id);
+      if(!existing.length) {
+        await sb.from("user_groups").upsert({user_id:user.uid,group_id:id,role:"member",user_name:user.name,user_email:user.email},"user_id,group_id");
+      }
+    } catch(e) {}
     saveLastGroup(user.uid, id);
   }
   setActiveGroupId(id);
   setScreen("app");
 }
+
 async function handleNew(name) {
   var slug = name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"").slice(0,20);
   var id = slug+"-"+f.genId();
