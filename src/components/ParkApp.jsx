@@ -248,21 +248,20 @@ var myBookings = getMyBookings();
   async function cancelBooking(id){
   confirm("Czy na pewno chcesz anulować tę rezerwację?", async function(){
     try{
-      // Powiadom rezerwującego ZANIM wyczyścimy dane (potem nie będzie wiadomo do kogo wysłać)
-      try { await sb.invoke("send-push", { slot_id: id, type: "owner_cancelled" }); } catch(e) { console.error("push:", e); }
-      await sb.from("slots").update({booked:false,booked_by:null,booker_phone:null,booked_at:null,booked_by_uid:null},"?id=eq."+id);
+      try { await sb.invoke("send-push", { slot_id: id, type: "owner_cancelled" }); } catch(e) {}
+      await sb.rpc("owner_cancel_booking", { p_slot_id: id });
       showToast("Rezerwacja anulowana.","warn"); loadAll();
-    }catch(e){}
+    }catch(e){ showToast("Błąd: "+e.message,"error"); }
   });
 }
 
   async function acceptBooking(id) {
-    try {
-      await sb.from("slots").update({booked_at: Date.now() - CANCEL_WINDOW_MS}, "?id=eq." + id);
-      showToast("Rezerwacja zatwierdzona!", "success");
-      loadAll();
-    } catch(e) { showToast("Błąd: " + e.message, "error"); }
-  }
+  try {
+    await sb.rpc("owner_accept_booking", { p_slot_id: id });
+    showToast("Rezerwacja zatwierdzona!", "success");
+    loadAll();
+  } catch(e) { showToast("Błąd: " + e.message, "error"); }
+}
 
   async function cancelBookingDirect(id){
     try{
@@ -272,29 +271,29 @@ var myBookings = getMyBookings();
   }
 
   async function doConfirmBook(){
-    if(!bookerName.trim()) return;
-    var slotId = bookModal.slotId;
-    try{
-      await sb.from("slots").update({booked:true,booked_by:bookerName,booker_phone:bookerPhone,booked_at:Date.now(),booked_by_uid:user.uid},"?id=eq."+slotId);
-      setBookModal(null); setBookerName(user.guest?"":user.name); setBookerPhone(""); showToast("Rezerwacja potwierdzona!"); loadAll();
-      // Powiadom właściciela miejsca (fire-and-forget, nie blokuje UI)
-      sb.invoke("send-push", { slot_id: slotId }).catch(function(e){ console.error("push notify:", e); });
-    }catch(e){showToast("Błąd: "+e.message,"error");}
-  }
+  if(!bookerName.trim()) return;
+  var slotId = bookModal.slotId;
+  try{
+    await sb.rpc("book_slot", { p_slot_id: slotId, p_name: bookerName, p_phone: bookerPhone, p_guest_uid: user.guest ? user.uid : null });
+    setBookModal(null); setBookerName(user.guest?"":user.name); setBookerPhone(""); showToast("Rezerwacja potwierdzona!"); loadAll();
+    sb.invoke("send-push", { slot_id: slotId }).catch(function(e){ console.error("push notify:", e); });
+  }catch(e){showToast("Błąd: "+e.message,"error");}
+}
 
   async function saveEditedSlot(slotId, data) {
-    try {
-      await sb.from("slots").update({
-        all_day: data.allDay,
-        from_time: data.allDay ? "00:00" : data.from,
-        to_time: data.allDay ? "24:00" : data.to,
-        price: parseFloat(data.price) || 0
-      }, "?id=eq." + slotId);
-      setEditSlotModal(null);
-      showToast("Termin zaktualizowany!");
-      loadAll();
-    } catch(e) { showToast("Błąd: " + e.message, "error"); }
-  }
+  try {
+    await sb.rpc("owner_edit_slot", {
+      p_slot_id: slotId,
+      p_all_day: data.allDay,
+      p_from: data.from,
+      p_to: data.to,
+      p_price: parseFloat(data.price) || 0
+    });
+    setEditSlotModal(null);
+    showToast("Termin zaktualizowany!");
+    loadAll();
+  } catch(e) { showToast("Błąd: " + e.message, "error"); }
+}
 
   function SlotCal({ spotId }) {
     var dim=f.daysInMonth(calY,calM), first=f.firstDay(calY,calM);
@@ -492,18 +491,18 @@ async function maybeShowPushPrompt(isFirstSpot) {
               {b.spot.note && <div style={{marginTop:6,padding:8,background:"#0f1117",borderRadius:6,color:"#d1d5db",lineHeight:1.5}}>{b.spot.note}</div>}
             </div>
 
-            {canCancel && (
-              <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid #22253a"}}>
-                <div style={{fontSize:11,color:"#fbbf24",marginBottom:6}}>Możesz anulować bez konsekwencji jeszcze przez {f.timeLeft(b.booked_at)}</div>
-                <button style={{...c.btn("ghost"),width:"100%",border:"1px solid #7f1d1d",color:"#fca5a5"}} onClick={function(){confirm("Czy na pewno anulować tę rezerwację?", async function(){
-                  try {
-                    await sb.from("slots").update({booked:false,booked_by:null,booker_phone:null,booked_at:null,booked_by_uid:null},"?id=eq."+b.id);
-                    showToast("Rezerwacja anulowana");
-                    loadAll();
-                  } catch(e) { showToast("Błąd: "+e.message,"error"); }
-                });}}>Anuluj rezerwację</button>
-              </div>
-            )}
+{canCancel && (
+  <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid #22253a"}}>
+    <div style={{fontSize:11,color:"#fbbf24",marginBottom:6}}>Możesz anulować bez konsekwencji jeszcze przez {f.timeLeft(b.booked_at)}</div>
+    <button style={{...c.btn("ghost"),width:"100%",border:"1px solid #7f1d1d",color:"#fca5a5"}} onClick={function(){confirm("Czy na pewno anulować tę rezerwację?", async function(){
+      try {
+        await sb.rpc("cancel_my_booking", { p_slot_id: b.id, p_guest_uid: user.guest ? user.uid : null });
+        showToast("Rezerwacja anulowana");
+        loadAll();
+      } catch(e) { showToast("Błąd: "+e.message,"error"); }
+    });}}>Anuluj rezerwację</button>
+  </div>
+)}
           </div>
         );
       })
