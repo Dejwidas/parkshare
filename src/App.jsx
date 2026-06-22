@@ -100,14 +100,12 @@ async function handleJoin(id) {
 }
 
 async function handleNew(name) {
+  if(!user || user.guest) { console.error("Tylko zalogowany użytkownik może utworzyć grupę"); return; }
   var slug = name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"").slice(0,20);
   var id = slug+"-"+f.genId();
   try {
-    await sb.from("groups").insert({id,name});
-    if(user&&!user.guest) {
-      await sb.from("user_groups").upsert({user_id:user.uid,group_id:id,role:"admin",user_name:user.name,user_email:user.email},"user_id,group_id");
-      saveLastGroup(user.uid, id);
-    }
+    await sb.rpc("create_group", { p_id: id, p_name: name, p_user_name: user.name, p_user_email: user.email });
+    saveLastGroup(user.uid, id);
     setActiveGroupId(id);
     setScreen("app");
   } catch(e) { console.error(e); }
