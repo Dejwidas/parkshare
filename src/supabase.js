@@ -1,5 +1,8 @@
-var SUPABASE_URL = "https://rbpnmvzggshgytzascqz.supabase.co";
-var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicG5tdnpnZ3NoZ3l0emFzY3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzE2MDAsImV4cCI6MjA5MzA0NzYwMH0.ahtUVzG2CDbagn8PtO4keBrey1NtbIKVcZHDQsq8vjc";
+//var SUPABASE_URL = "https://rbpnmvzggshgytzascqz.supabase.co";
+//var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicG5tdnpnZ3NoZ3l0emFzY3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzE2MDAsImV4cCI6MjA5MzA0NzYwMH0.ahtUVzG2CDbagn8PtO4keBrey1NtbIKVcZHDQsq8vjc";
+
+var SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+var SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export var _authToken = null;
 export function setAuthToken(t) { _authToken = t; }
