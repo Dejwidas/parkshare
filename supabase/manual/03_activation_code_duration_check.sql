@@ -54,13 +54,18 @@ add constraint activation_codes_duration_matches_plan check (
 
 
 -- ── Krok 4. Weryfikacja ─────────────────────────────────────────────────────
--- Powinno rzucić błędem "violates check constraint":
---
---   insert into activation_codes (code, group_id, plan_type, duration_days)
---   values ('TEST-BAD-0001', 'ISTNIEJACA_GRUPA', 'paid_monthly', 90);
---
--- A to powinno przejść:
---
---   insert into activation_codes (code, group_id, plan_type, duration_days)
---   values ('TEST-OK-0001', 'ISTNIEJACA_GRUPA', 'paid_monthly', 30);
---   delete from activation_codes where code = 'TEST-OK-0001';
+-- Oba testy same podstawiają istniejącą grupę i kończą się rollbackiem,
+-- więc nic nie zostaje w tabeli i nie trzeba niczego podmieniać ręcznie.
+
+-- 4a. POWINNO rzucić błędem "violates check constraint
+--     activation_codes_duration_matches_plan":
+begin;
+  insert into activation_codes (code, group_id, plan_type, duration_days)
+  select 'TEST-BAD-0001', id, 'paid_monthly', 90 from groups limit 1;
+rollback;
+
+-- 4b. POWINNO przejść bez błędu:
+begin;
+  insert into activation_codes (code, group_id, plan_type, duration_days)
+  select 'TEST-OK-0001', id, 'paid_monthly', 30 from groups limit 1;
+rollback;
