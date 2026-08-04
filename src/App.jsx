@@ -88,12 +88,13 @@ async function checkMembership(uid, gid) {
 async function handleJoin(id) {
   if(user&&!user.guest) {
     try {
-      var existing = await sb.from("user_groups").select("role","&user_id=eq."+user.uid+"&group_id=eq."+id);
-      if(!existing.length) {
-        await sb.from("user_groups").upsert({user_id:user.uid,group_id:id,role:"member",user_name:user.name,user_email:user.email},"user_id,group_id");
-      }
-    } catch(e) {}
-    saveLastGroup(user.uid, id);
+      // Limit wersji demo jest egzekwowany w bazie — join_group jest jedyną drogą do user_groups
+      var res = await sb.rpc("join_group", { p_group_id: id, p_user_name: user.name, p_user_email: user.email });
+      var st = res && res[0] ? res[0].status : null;
+      if(st==="full") { alert("Ta grupa osiągnęła limit 10 użytkowników w wersji demo. Skontaktuj się z administratorem grupy w celu odblokowania pełnej wersji."); return; }
+      if(st==="not_found") { alert("Nie znaleziono grupy."); return; }
+      saveLastGroup(user.uid, id);
+    } catch(e) { console.error(e); return; }
   }
   setActiveGroupId(id);
   setScreen("app");

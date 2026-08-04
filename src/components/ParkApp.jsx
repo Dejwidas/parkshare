@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { c, useIsMobile } from "../styles.js";
-import { sb } from "../supabase.js";
+import { sb, errMsg } from "../supabase.js";
 import { f, today, DAYS_SHORT, DAYS_PL, MONTHS_FULL, CANCEL_WINDOW_MS } from "../constants.js";
 import { ParkLogo, ConfirmDialog, Spinner } from "./UI.jsx";
 import { GroupSwitcher } from "./GroupSwitcher.jsx";
@@ -10,6 +10,54 @@ import { PushPromptModal } from "./PushPrompt.jsx";
 import { isPushSupported, getPushStatus } from "../push.js";
 import { Footer } from "./UI.jsx";
 
+
+// ============ BANER STANU PLANU ============
+function PlanBanner({ status, isAdmin, onOpenPlan }) {
+  if(!status) return null;
+
+  var link = function(label){
+    if(!isAdmin) return null;
+    return <> · <a href="#" onClick={function(e){e.preventDefault();onOpenPlan();}} style={{color:"#fff",fontWeight:600,textDecoration:"underline"}}>{label}</a></>;
+  };
+
+  // Poza pierwszą dziesiątką po utracie pełnej wersji — konto zostaje, ale bez akcji
+  if(!status.i_am_active) {
+    return (
+      <div style={{background:"#7f1d1d",color:"#fecaca",padding:"10px 16px",fontSize:12,textAlign:"center",borderBottom:"1px solid #991b1b",fontWeight:600}}>
+        Pełna wersja tej grupy wygasła — Twoje konto jest poza pierwszą dziesiątką aktywnych członków. Możesz przeglądać, ale nie rezerwować.
+      </div>
+    );
+  }
+
+  if(status.plan==="demo") {
+    return (
+      <div style={{background:"#4a1a8c",color:"#e0d4ff",padding:"10px 16px",fontSize:12,textAlign:"center",borderBottom:"1px solid #5b21b6"}}>
+        Wersja demo · {status.current_members}/10 użytkowników z pełnym dostępem
+        {link("Odblokuj pełną wersję")}
+      </div>
+    );
+  }
+
+  if(status.plan==="trial") {
+    var d = status.days_until_expiry;
+    var urgent = d!=null && d<=7;
+    var soon = d!=null && d<=30;
+    var bg = urgent?"#7f1d1d":soon?"#78350f":"#1e3a2e";
+    var fg = urgent?"#fecaca":soon?"#fde68a":"#a7f3d0";
+    var bd = urgent?"#991b1b":soon?"#92400e":"#166534";
+    var msg = urgent ? ("Wersja próbna wygasa za "+d+" dni!")
+            : soon  ? ("Wersja próbna wygasa za "+d+" dni")
+            : ("Wersja próbna aktywna do "+(status.plan_expires_at?new Date(status.plan_expires_at).toLocaleDateString("pl-PL"):"—"));
+    return (
+      <div style={{background:bg,color:fg,padding:"10px 16px",fontSize:12,textAlign:"center",borderBottom:"1px solid "+bd,fontWeight:urgent?600:400}}>
+        {msg}
+        {link(urgent?"Odblokuj teraz":"Przedłuż")}
+      </div>
+    );
+  }
+
+  return null;  // plan "paid" — bez banera, wejście przez menu grupy
+}
 
 function InviteModal({ group, onClose, isMobile }) {
   var [copied,setCopied] = useState(false);
@@ -100,6 +148,8 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
   var [editSlotModal, setEditSlotModal] = useState(null);
   var subRef = useRef(null);
   var [showPushPrompt, setShowPushPrompt] = useState(false);
+  var [groupStatus,setGroupStatus] = useState(null);
+  var [codeInput,setCodeInput] = useState("");
 
   var modalStyle = isMobile ? c.modalMobile : c.modal;
 
@@ -119,6 +169,11 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
         if(ug.length) setMyRole(ug[0].role);
       }
       setGroup(grp[0]); setSpots(sps); setSlots(sls);
+      // Własny catch — błąd statusu planu nie może wywrócić ładowania miejsc i terminów
+      try{
+        var st = await sb.rpc("check_group_status", { p_group_id: groupId });
+        if(st && st[0]) setGroupStatus(st[0]);
+      }catch(e){console.error("check_group_status:", e);}
     }catch(e){console.error(e);}finally{setLoading(false);}
   }
 
@@ -131,6 +186,31 @@ export function ParkApp({ groupId, user, onLeave, onLogout, onSwitchGroup, onNew
 
   function showToast(msg,type){setToast({msg,type:type||"success"});setTimeout(function(){setToast(null);},3500);}
   function confirm(msg,onConfirm){setConfirmDialog({msg,onConfirm});}
+
+  // Blokuje akcje mutujące dla członków spoza pierwszej dziesiątki w wersji demo.
+  // Przeglądanie zostaje dostępne — blokujemy tylko zmiany.
+  function requireActive(fn) {
+    return function() {
+      if(groupStatus && !groupStatus.i_am_active) {
+        showToast("Ta grupa działa w wersji demo — Twoje konto jest poza pierwszą dziesiątką aktywnych członków. Skontaktuj się z administratorem grupy.","warn");
+        return;
+      }
+      return fn.apply(null, arguments);
+    };
+  }
+
+  async function activateCode(){
+    var code = codeInput.trim();
+    if(!code) return;
+    try{
+      var res = await sb.rpc("activate_code", { p_code: code, p_group_id: groupId });
+      var plan = res && res[0] ? res[0].activated_plan : null;
+      showToast("Kod aktywowany!"+(plan?" Plan: "+plan:""));
+      setCodeInput("");
+      await loadAll();
+      setView("browse");
+    }catch(e){ showToast("Błąd: "+errMsg(e),"error"); }
+  }
   function slotsForSpot(id){return slots.filter(function(sl){return sl.spot_id===id;});}
   function slotsOn(id,d){return slotsForSpot(id).filter(function(sl){return sl.date===d;});}
   function hasConflict(spotId, dateKey) {
@@ -170,16 +250,8 @@ async function addSpot(){
     setNewSpot({name:"",desc:"",owner:user.guest?"":user.name,phone:"",email:"",note:"",type:"underground",spotVisibility:"private"});
     setShowAdd(false); showToast("Miejsce dodane!"); loadAll();
     maybeShowPushPrompt(mySpotCountBefore === 0);
-  }catch(e){showToast("Błąd: "+e.message,"error");}
+  }catch(e){showToast("Błąd: "+errMsg(e),"error");}
 }
-//////////////////////////////////////////////////////////////////////////////nowe funkcje \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-  function getPendingBookings(){
-  return spots.filter(isOwner).flatMap(function(sp){
-    return slotsForSpot(sp.id).filter(function(sl){return sl.booked&&f.canCancel(sl.booked_at);}).map(function(sl){return {...sl,spotName:sp.name};});
-  });
-}
-var pendingBookings = getPendingBookings();
-
   function getMyBookings(){
   var todayKey = f.dateKey(today);
   return spots.flatMap(function(sp){
@@ -213,7 +285,7 @@ var myBookings = getMyBookings();
       setEditSpotModal(null);
       showToast("Miejsce zaktualizowane!");
       loadAll();
-    } catch(e){ showToast("Błąd: "+e.message,"error"); }
+    } catch(e){ showToast("Błąd: "+errMsg(e),"error"); }
   }
 
   async function removeSpot(spotId,spotName){
@@ -223,7 +295,7 @@ var myBookings = getMyBookings();
         for(var i=0;i<ss.length;i++) await sb.from("slots").delete("?id=eq."+ss[i].id);
         await sb.from("spots").delete("?id=eq."+spotId);
         showToast("Miejsce usunięte.","warn"); loadAll();
-      }catch(e){showToast("Błąd: "+e.message,"error");}
+      }catch(e){showToast("Błąd: "+errMsg(e),"error");}
     });
   }
 
@@ -236,7 +308,7 @@ var myBookings = getMyBookings();
       var rows = multiDates.map(function(d){return {id:f.genId(),spot_id:spotId,date:d,all_day:slotForm.allDay,from_time:slotForm.allDay?"00:00":slotForm.from,to_time:slotForm.allDay?"24:00":slotForm.to,price};});
       await sb.from("slots").insert(rows);
       setMultiDates([]); showToast("Dodano "+multiDates.length+" terminów!"); loadAll();
-    }catch(e){showToast("Błąd: "+e.message,"error");}
+    }catch(e){showToast("Błąd: "+errMsg(e),"error");}
   }
 
   async function removeSlot(id){
@@ -251,7 +323,7 @@ var myBookings = getMyBookings();
       try { await sb.invoke("send-push", { slot_id: id, type: "owner_cancelled" }); } catch(e) {}
       await sb.rpc("owner_cancel_booking", { p_slot_id: id });
       showToast("Rezerwacja anulowana.","warn"); loadAll();
-    }catch(e){ showToast("Błąd: "+e.message,"error"); }
+    }catch(e){ showToast("Błąd: "+errMsg(e),"error"); }
   });
 }
 
@@ -260,7 +332,7 @@ var myBookings = getMyBookings();
     await sb.rpc("owner_accept_booking", { p_slot_id: id });
     showToast("Rezerwacja zatwierdzona!", "success");
     loadAll();
-  } catch(e) { showToast("Błąd: " + e.message, "error"); }
+  } catch(e) { showToast("Błąd: "+errMsg(e), "error"); }
 }
 
   async function cancelBookingDirect(id){
@@ -277,7 +349,7 @@ var myBookings = getMyBookings();
     await sb.rpc("book_slot", { p_slot_id: slotId, p_name: bookerName, p_phone: bookerPhone, p_guest_uid: user.guest ? user.uid : null });
     setBookModal(null); setBookerName(user.guest?"":user.name); setBookerPhone(""); showToast("Rezerwacja potwierdzona!"); loadAll();
     sb.invoke("send-push", { slot_id: slotId }).catch(function(e){ console.error("push notify:", e); });
-  }catch(e){showToast("Błąd: "+e.message,"error");}
+  }catch(e){showToast("Błąd: "+errMsg(e),"error");}
 }
 
   async function saveEditedSlot(slotId, data) {
@@ -292,7 +364,7 @@ var myBookings = getMyBookings();
     setEditSlotModal(null);
     showToast("Termin zaktualizowany!");
     loadAll();
-  } catch(e) { showToast("Błąd: " + e.message, "error"); }
+  } catch(e) { showToast("Błąd: "+errMsg(e), "error"); }
 }
 
   function SlotCal({ spotId }) {
@@ -340,6 +412,68 @@ async function maybeShowPushPrompt(isFirstSpot) {
   if(view==="account") return <AccountSettingsView user={user} onBack={function(){setView("browse");}} onLogout={onLogout}/>;
   if(view==="admin" && isAdmin) return <AdminPanel groupId={groupId} user={user} spots={spots} slots={slots} onBack={function(){setView("browse");}} onDataChange={loadAll}/>;
 
+  if(view==="plan" && isAdmin) return (
+    <div style={c.app}>
+      <div style={{...(isMobile?c.wrapMobile:c.wrap),maxWidth:520}}>
+        <button style={c.btn("ghost")} onClick={function(){setView("browse");}}>← Wróć</button>
+
+        <div style={{fontSize:20,fontWeight:600,color:"#a78bfa",marginTop:20,marginBottom:4}}>Plan grupy</div>
+        <div style={{fontSize:13,color:"#6b7280",marginBottom:20}}>{group.name}</div>
+
+        {groupStatus&&(
+          <div style={{...c.card(false),marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+              <div>
+                <div style={{fontSize:11,color:"#6b7280",textTransform:"uppercase",letterSpacing:"0.5px"}}>Obecny plan</div>
+                <div style={{fontSize:16,fontWeight:600,color:"#e8eaf0",marginTop:2}}>
+                  {groupStatus.plan==="demo"?"Demo":groupStatus.plan==="trial"?"Wersja próbna":"Pełna wersja"}
+                </div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:11,color:"#6b7280",textTransform:"uppercase",letterSpacing:"0.5px"}}>Członkowie</div>
+                <div style={{fontSize:16,fontWeight:600,color:"#e8eaf0",marginTop:2}}>
+                  {groupStatus.current_members}{groupStatus.plan==="demo"?" / 10":""}
+                </div>
+              </div>
+            </div>
+            {groupStatus.plan_expires_at&&(
+              <div style={{fontSize:12,color:"#9ca3af",marginTop:10,paddingTop:10,borderTop:"1px solid #22253a"}}>
+                Ważny do {new Date(groupStatus.plan_expires_at).toLocaleDateString("pl-PL")}
+                {groupStatus.days_until_expiry!=null&&<span style={{color:"#6b7280"}}> · pozostało {groupStatus.days_until_expiry} dni</span>}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={{...c.card(true),marginBottom:20}}>
+          <label style={c.label}>Masz kod aktywacyjny?</label>
+          <input style={{...c.input,marginBottom:10}} placeholder="np. TRIAL-ZIELONA5-2601" value={codeInput} onChange={function(e){setCodeInput(e.target.value.trim());}}/>
+          <button style={{...c.btn("primary"),width:"100%",opacity:codeInput.trim()?1:0.4}} onClick={activateCode} disabled={!codeInput.trim()}>Aktywuj</button>
+        </div>
+
+        <div style={{fontSize:11,color:"#6b7280",textTransform:"uppercase",letterSpacing:"1px",fontWeight:600,marginBottom:10}}>Cennik po okresie próbnym</div>
+        <div style={{display:"flex",gap:10,marginBottom:20}}>
+          <div style={{flex:1,background:"#1a1d2e",border:"1px solid #2a2d3e",padding:16,borderRadius:12,textAlign:"center"}}>
+            <div style={{fontSize:11,color:"#6b7280"}}>Miesięcznie</div>
+            <div style={{fontSize:24,fontWeight:700,color:"#a78bfa",marginTop:6}}>49 zł</div>
+          </div>
+          <div style={{flex:1,background:"#1a1d2e",border:"1px solid #7c3aed",padding:16,borderRadius:12,textAlign:"center"}}>
+            <div style={{fontSize:11,color:"#a78bfa"}}>Rocznie</div>
+            <div style={{fontSize:24,fontWeight:700,color:"#a78bfa",marginTop:6}}>499 zł</div>
+          </div>
+        </div>
+
+        <div style={{background:"#0f1117",border:"1px solid #2a2d3e",borderRadius:10,padding:16,fontSize:13,color:"#9ca3af",textAlign:"center",lineHeight:1.6}}>
+          Aby otrzymać kod aktywacyjny, napisz do nas:<br/>
+          <a href="mailto:kontakt@parkshare.pl" style={{color:"#a78bfa",fontWeight:600,textDecoration:"none"}}>kontakt@parkshare.pl</a>
+        </div>
+
+        <Footer/>
+      </div>
+      {toast&&<div style={c.toast(toast.type)}>{toast.msg}</div>}
+    </div>
+  );
+
   var isToday = f.isSameDay(selDate,today);
   var browseSpots = spots.map(function(sp){return {...sp,todaySlots:slotsOn(sp.id,dk)};}).filter(function(sp){return sp.todaySlots.length>0;});
 
@@ -356,6 +490,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
           onNew={onNew}
           onInvite={function(){setShowInvite(true);}}
           onOpenAdmin={function(){setView("admin");}}
+          onOpenPlan={function(){setView("plan");}}
         />
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
           {!isMobile && (
@@ -381,6 +516,8 @@ async function maybeShowPushPrompt(isFirstSpot) {
 />
         </div>
       </div>
+
+      <PlanBanner status={groupStatus} isAdmin={isAdmin} onOpenPlan={function(){setView("plan");}}/>
 
       <div style={isMobile?c.wrapMobile:c.wrap}>
         {view==="browse"&&(
@@ -440,7 +577,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
                       <div style={{fontSize:12,color:sl.price===0?"#6ee7b7":"#a78bfa",marginTop:2}}>{sl.booked?"Zarezerwowane: "+sl.booked_by:sl.price===0?"Bezpłatnie":sl.price+" zł"}</div>
                     </div>
                     <div style={{display:"flex",gap:6,flexShrink:0}}>
-                      {!sl.booked&&<button style={{...c.btn("ghost"),padding:"7px 14px",fontSize:13,border:"1px solid #2a2d3e"}} onClick={function(){setBookModal({spotId:sp.id,slotId:sl.id,sl,sp,dk});}}>Zarezerwuj</button>}
+                      {!sl.booked&&<button style={{...c.btn("ghost"),padding:"7px 14px",fontSize:13,border:"1px solid #2a2d3e"}} onClick={requireActive(function(){setBookModal({spotId:sp.id,slotId:sl.id,sl,sp,dk});})}>Zarezerwuj</button>}
                       {sl.booked&&sl.booked_by_uid===user.uid&&f.canCancel(sl.booked_at)&&(
                         <button style={{...c.btn("warn"),padding:"7px 12px",fontSize:13}} onClick={function(){confirm("Czy na pewno chcesz anulować swoją rezerwację?",async function(){await cancelBookingDirect(sl.id);});}}>Anuluj</button>
                       )}
@@ -499,7 +636,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
         await sb.rpc("cancel_my_booking", { p_slot_id: b.id, p_guest_uid: user.guest ? user.uid : null });
         showToast("Rezerwacja anulowana");
         loadAll();
-      } catch(e) { showToast("Błąd: "+e.message,"error"); }
+      } catch(e) { showToast("Błąd: "+errMsg(e),"error"); }
     });}}>Anuluj rezerwację</button>
   </div>
 )}
@@ -514,7 +651,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
           <div>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
               <div style={{fontSize:14,fontWeight:600,color:"#c4b5fd"}}>Moje miejsca parkingowe</div>
-              <button style={c.btn("primary")} onClick={function(){setShowAdd(function(v){return !v;});}}>+ Dodaj</button>
+              <button style={c.btn("primary")} onClick={requireActive(function(){setShowAdd(function(v){return !v;});})}>+ Dodaj</button>
             </div>
 
             {pendingBookings.length>0&&(
@@ -580,7 +717,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
                       <div style={{fontSize:12,color:"#6b7280",marginTop:2}}>{sp.desc||"Brak opisu"}</div>
                     </div>
                     <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                      <button style={c.btn(editingSpotId===sp.id?"ghost":"primary")} onClick={function(){var newId=editingSpotId===sp.id?null:sp.id;setEditingSpotId(newId);setMultiDates([]);setCalY(today.getFullYear());setCalM(today.getMonth());}}>
+                      <button style={c.btn(editingSpotId===sp.id?"ghost":"primary")} onClick={requireActive(function(){var newId=editingSpotId===sp.id?null:sp.id;setEditingSpotId(newId);setMultiDates([]);setCalY(today.getFullYear());setCalM(today.getMonth());})}>
                         {editingSpotId===sp.id?"Zamknij":"+ Termin"}
                       </button>
                       <button style={c.btn("default")} onClick={function(){setEditSpotModal({id:sp.id,name:sp.name||"",desc:sp.desc||"",owner:sp.owner||"",phone:sp.phone||"",email:sp.email||"",note:sp.note||"",type:sp.type||"underground",spotVisibility:sp.spot_visibility||"private"});}}>Edytuj</button>
@@ -637,9 +774,9 @@ async function maybeShowPushPrompt(isFirstSpot) {
                             <div style={{display:"flex",gap:6,flexShrink:0,flexWrap:"wrap"}}>
                               {canCancel&&<button style={{...c.btn("success"),padding:"5px 10px",fontSize:11}} onClick={function(){acceptBooking(sl.id);}}>Zatwierdź</button>}
                               {canCancel&&<button style={{...c.btn("warn"),padding:"5px 10px",fontSize:11}} onClick={function(){cancelBooking(sl.id);}}>Anuluj</button>}
-                              {!sl.booked&&<button style={{...c.btn("default"),padding:"5px 10px",fontSize:11}} onClick={function(){
+                              {!sl.booked&&<button style={{...c.btn("default"),padding:"5px 10px",fontSize:11}} onClick={requireActive(function(){
                                 setEditSlotModal({id:sl.id,allDay:sl.all_day,from:sl.from_time,to:sl.to_time,price:String(sl.price)});
-                              }}>Edytuj</button>}
+                              })}>Edytuj</button>}
                               <button style={{...c.btn("danger"),padding:"5px 10px",fontSize:11}} onClick={function(){removeSlot(sl.id);}}>Usuń</button>
                             </div>
                           </div>

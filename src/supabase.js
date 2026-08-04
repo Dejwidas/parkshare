@@ -7,6 +7,15 @@ var SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export var _authToken = null;
 export function setAuthToken(t) { _authToken = t; }
 
+// sbReq rzuca Error z surowym body odpowiedzi. Dla błędów PostgREST (w tym
+// wyjątków RAISE z funkcji RPC) jest to JSON — wyciągamy z niego samą treść,
+// żeby użytkownik nie zobaczył {"code":"P0001","details":null,...}.
+export function errMsg(e) {
+  if (!e || !e.message) return "nieznany błąd";
+  try { var d = JSON.parse(e.message); return d.message || d.msg || d.error_description || d.error || e.message; }
+  catch { return e.message; }
+}
+
 // ── Sesja: localStorage + refresh_token + expires_at ─────────────────────────
 // Format w storage: { user, access_token, refresh_token, expires_at (ms) }
 

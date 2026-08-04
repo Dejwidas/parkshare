@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { c } from "../styles.js";
-import { sb } from "../supabase.js";
+import { sb, errMsg } from "../supabase.js";
 import { ParkLogo } from "./UI.jsx";
 
-export function GroupSwitcher({ groupId, groupName, user, isAdmin, onJoin, onNew, onInvite, onOpenAdmin }) {
+export function GroupSwitcher({ groupId, groupName, user, isAdmin, onJoin, onNew, onInvite, onOpenAdmin, onOpenPlan }) {
   var [open,setOpen] = useState(false);
   var [myGroups,setMyGroups] = useState([]);
   var [showJoinForm,setShowJoinForm] = useState(false);
@@ -27,16 +27,16 @@ export function GroupSwitcher({ groupId, groupName, user, isAdmin, onJoin, onNew
 
 async function join(){
   var t = code.trim();
+  if(!t){setErr("Podaj kod grupy.");return;}
   try{
-    var rows = await sb.from("groups").select("*","&id=eq."+t);
-    if(!rows.length){setErr("Nie znaleziono grupy.");return;}
-    var existing = await sb.from("user_groups").select("role","&user_id=eq."+user.uid+"&group_id=eq."+t);
-    if(!existing.length){
-      await sb.from("user_groups").upsert({user_id:user.uid,group_id:t,role:"member",user_name:user.name,user_email:user.email},"user_id,group_id");
-    }
+    // Limit wersji demo jest egzekwowany w bazie — join_group jest jedyną drogą do user_groups
+    var res = await sb.rpc("join_group", { p_group_id: t, p_user_name: user.name, p_user_email: user.email });
+    var st = res && res[0] ? res[0].status : null;
+    if(st==="not_found"){setErr("Nie znaleziono grupy.");return;}
+    if(st==="full"){setErr("Ta grupa osiągnęła limit 10 użytkowników w wersji demo. Skontaktuj się z administratorem grupy.");return;}
     setOpen(false);setShowJoinForm(false);setCode("");setErr("");
     onJoin(t);
-  }catch(e){setErr("Błąd: "+e.message);}
+  }catch(e){setErr("Błąd: "+errMsg(e));}
 }
   async function createNew(){
     if(!newName.trim()) return;
@@ -90,10 +90,15 @@ async function join(){
               )}
               <button style={{...c.btn("ghost"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowJoinForm(true);}}>+ Dołącz do grupy (kod)</button>
               <button style={{...c.btn("default"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowNewForm(true);}}>+ Utwórz nową grupę</button>
-              {!user.guest && isAdmin && typeof onOpenAdmin === "function" && (
+              {!user.guest && isAdmin && (typeof onOpenAdmin === "function" || typeof onOpenPlan === "function") && (
                 <>
                   <div style={{borderTop:"1px solid #2a2d3e",margin:"4px 0"}}/>
-                  <button style={{...c.btn("admin"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setOpen(false);onOpenAdmin();}}>🛡  Panel admina</button>
+                  {typeof onOpenAdmin === "function" && (
+                    <button style={{...c.btn("admin"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setOpen(false);onOpenAdmin();}}>🛡  Panel admina</button>
+                  )}
+                  {typeof onOpenPlan === "function" && (
+                    <button style={{...c.btn("admin"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setOpen(false);onOpenPlan();}}>⭐  Plan grupy</button>
+                  )}
                 </>
               )}
             </div>

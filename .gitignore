@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 .env
 .env.local
+
+# Supabase — lokalne dumpy bazy, nie wersjonujemy
+supabase/schema.sql
+supabase/*.sql
