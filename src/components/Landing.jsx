@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { c } from "../styles.js";
-import { sb } from "../supabase.js";
+import { sb, errMsg } from "../supabase.js";
 import { ParkLogo, Footer, Spinner } from "./UI.jsx";
 import { HelpButton } from "./Help.jsx";
 
@@ -25,12 +25,21 @@ export function Landing({ user, onJoin, onNew, onLogout }) {
 
   async function join(){
     var t = code.trim();
+    if(!t){setErr("Podaj kod grupy.");return;}
     try{
-      var rows = await sb.from("groups").select("*","&id=eq."+t);
-      if(!rows.length){setErr("Nie znaleziono grupy.");return;}
-      if(!user.guest) await sb.from("user_groups").upsert({user_id:user.uid,group_id:t,role:"member",user_name:user.name,user_email:user.email},"user_id,group_id");
+      // Gość nie dołącza do grupy — tylko sprawdzamy, czy kod istnieje
+      if(user.guest){
+        var rows = await sb.from("groups").select("id","&id=eq."+t);
+        if(!rows.length){setErr("Nie znaleziono grupy.");return;}
+        setErr(""); onJoin(t); return;
+      }
+      // Limit wersji demo jest egzekwowany w bazie — join_group jest jedyną drogą do user_groups
+      var res = await sb.rpc("join_group", { p_group_id: t, p_user_name: user.name, p_user_email: user.email });
+      var st = res && res[0] ? res[0].status : null;
+      if(st==="not_found"){setErr("Nie znaleziono grupy.");return;}
+      if(st==="full"){setErr("Ta grupa osiągnęła limit 10 użytkowników w wersji demo. Skontaktuj się z administratorem grupy.");return;}
       setErr(""); onJoin(t);
-    }catch(e){setErr("Blad: "+e.message);}
+    }catch(e){setErr("Błąd: "+errMsg(e));}
   }
 
   if(loading) return <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",alignItems:"center",justifyContent:"center"}}><Spinner/></div>;
