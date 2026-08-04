@@ -451,17 +451,25 @@ async function maybeShowPushPrompt(isFirstSpot) {
           <button style={{...c.btn("primary"),width:"100%",opacity:codeInput.trim()?1:0.4}} onClick={activateCode} disabled={!codeInput.trim()}>Aktywuj</button>
         </div>
 
-        <div style={{fontSize:11,color:"#6b7280",textTransform:"uppercase",letterSpacing:"1px",fontWeight:600,marginBottom:10}}>Cennik po okresie próbnym</div>
-        <div style={{display:"flex",gap:10,marginBottom:20}}>
-          <div style={{flex:1,background:"#1a1d2e",border:"1px solid #2a2d3e",padding:16,borderRadius:12,textAlign:"center"}}>
-            <div style={{fontSize:11,color:"#6b7280"}}>Miesięcznie</div>
-            <div style={{fontSize:24,fontWeight:700,color:"#a78bfa",marginTop:6}}>49 zł</div>
-          </div>
-          <div style={{flex:1,background:"#1a1d2e",border:"1px solid #7c3aed",padding:16,borderRadius:12,textAlign:"center"}}>
-            <div style={{fontSize:11,color:"#a78bfa"}}>Rocznie</div>
-            <div style={{fontSize:24,fontWeight:700,color:"#a78bfa",marginTop:6}}>499 zł</div>
-          </div>
-        </div>
+        {/* Cennik ma sens tylko tam, gdzie jest decyzją do podjęcia — grupa
+            na "paid" już płaci, więc go nie pokazujemy. Kafelki są czysto
+            informacyjne, stąd jednakowe obramowanie: wyróżnienie jednego
+            sugerowałoby zaznaczony wybór, w który da się kliknąć. */}
+        {groupStatus && (groupStatus.plan==="demo" || groupStatus.plan==="trial") && (
+          <>
+            <div style={{fontSize:11,color:"#6b7280",textTransform:"uppercase",letterSpacing:"1px",fontWeight:600,marginBottom:10}}>Cennik</div>
+            <div style={{display:"flex",gap:10,marginBottom:20}}>
+              <div style={{flex:1,background:"#1a1d2e",border:"1px solid #2a2d3e",padding:16,borderRadius:12,textAlign:"center"}}>
+                <div style={{fontSize:11,color:"#6b7280"}}>Miesięcznie</div>
+                <div style={{fontSize:24,fontWeight:700,color:"#a78bfa",marginTop:6}}>49 zł</div>
+              </div>
+              <div style={{flex:1,background:"#1a1d2e",border:"1px solid #2a2d3e",padding:16,borderRadius:12,textAlign:"center"}}>
+                <div style={{fontSize:11,color:"#6b7280"}}>Rocznie</div>
+                <div style={{fontSize:24,fontWeight:700,color:"#a78bfa",marginTop:6}}>499 zł</div>
+              </div>
+            </div>
+          </>
+        )}
 
         <div style={{background:"#0f1117",border:"1px solid #2a2d3e",borderRadius:10,padding:16,fontSize:13,color:"#9ca3af",textAlign:"center",lineHeight:1.6}}>
           Aby otrzymać kod aktywacyjny, napisz do nas:<br/>
