@@ -12,52 +12,26 @@ export function useIsMobile() {
   return isMobile;
 }
 
-// ── Motywy kolorystyczne ────────────────────────────────────────────────────
-// Wersje do porównania. Przełączanie: dopisz ?theme=sky do adresu (wybór
-// zapamiętuje się w localStorage) albo użyj przełącznika w rogu — widocznego
-// wyłącznie w trybie deweloperskim.
+// ── Paleta marki ────────────────────────────────────────────────────────────
+// Jedyne miejsce, w którym żyją kolory marki. Wcześniej te same wartości były
+// rozsypane po 10 plikach w 71 kopiach, więc zmiana odcienia wymagała
+// przeszukiwania całego projektu.
 //
-// Kolory semantyczne (zielony = wolne, bursztyn = oczekuje, czerwony = błąd)
-// celowo NIE są częścią motywu — znaczą to samo niezależnie od wariantu.
-export var THEMES = {
-  // obecny wygląd, punkt odniesienia
-  violet: {
-    brand:"#7c3aed", accent:"#a78bfa", accentSoft:"#c4b5fd", booked:"#818cf8",
-    brandDim:"#2a1f5e", adminBg:"#1e1b4b", adminBorder:"#4338ca",
-    bannerBg:"#4a1a8c", bannerBorder:"#5b21b6", bannerFg:"#e0d4ff"
-  },
-  // kolor pojawia się rzadko — akcentem jest biel, nie barwa
-  graphite: {
-    brand:"#0891b2", accent:"#e8eaf0", accentSoft:"#9ca3af", booked:"#9ca3af",
-    brandDim:"#1f2230", adminBg:"#1f2230", adminBorder:"#0891b2",
-    bannerBg:"#1a1d2e", bannerBorder:"#0891b2", bannerFg:"#cbd5e1"
-  },
-  sky: {
-    brand:"#0369a1", accent:"#38bdf8", accentSoft:"#7dd3fc", booked:"#7dd3fc",
-    brandDim:"#0c3a56", adminBg:"#0c2a3d", adminBorder:"#0284c7",
-    bannerBg:"#075985", bannerBorder:"#0369a1", bannerFg:"#e0f2fe"
-  },
-  teal: {
-    brand:"#0f766e", accent:"#2dd4bf", accentSoft:"#5eead4", booked:"#5eead4",
-    brandDim:"#134e4a", adminBg:"#134e4a", adminBorder:"#0d9488",
-    bannerBg:"#134e4a", bannerBorder:"#0f766e", bannerFg:"#ccfbf1"
-  }
+// Kolory semantyczne celowo NIE są tutaj — zielony (#6ee7b7, wolne),
+// bursztyn (#fbbf24, oczekuje) i czerwony (#f87171, błąd) niosą znaczenie,
+// a nie tożsamość, więc nie zmieniają się razem z marką.
+export var p = {
+  brand:       "#7c3aed",  // przyciski główne, aktywne zakładki, ramki aktywnych kart
+  accent:      "#a78bfa",  // teksty akcentowe: logo, ceny, linki
+  accentSoft:  "#c4b5fd",  // nagłówki sekcji, notatki
+  booked:      "#818cf8",  // etykieta „Zarezerwowane”
+  brandDim:    "#2a1f5e",  // tło aktywnej grupy na liście
+  adminBg:     "#1e1b4b",  // tło odznaki i przycisków admina
+  adminBorder: "#4338ca",
+  bannerBg:    "#4a1a8c",  // baner wersji demo
+  bannerBorder:"#5b21b6",
+  bannerFg:    "#e0d4ff"
 };
-
-export var THEME_LABELS = { violet:"Fiolet (obecny)", graphite:"Grafit", sky:"Błękit", teal:"Morska" };
-
-function pickTheme() {
-  try {
-    var fromUrl = new URLSearchParams(window.location.search).get("theme");
-    if (fromUrl && THEMES[fromUrl]) { localStorage.setItem("ps_theme", fromUrl); return fromUrl; }
-    var saved = localStorage.getItem("ps_theme");
-    if (saved && THEMES[saved]) return saved;
-  } catch { /* brak localStorage (tryb prywatny) — zostajemy przy domyślnym */ }
-  return "violet";
-}
-
-export var themeName = pickTheme();
-export var p = THEMES[themeName];
 
 export var c = {
   app:{fontFamily:"system-ui,sans-serif",minHeight:"100vh",background:"#0f1117",color:"#e8eaf0"},
