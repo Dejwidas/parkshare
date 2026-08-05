@@ -25,23 +25,26 @@ zmieniających dane.
 | 1.3 | `03_activation_code_duration_check.sql` | ✅ | ✅ |
 | 1.4 | `02_grandfather_existing_groups.sql` | pominięte celowo | ✅ |
 | 2 | Merge do `main` + deploy | — | ✅ `e574e22` |
-| 2.1 | Smoke test | ✅ | 🔄 w trakcie |
-| 3 | **Część B — `drop policy`** | ✅ | ⬜ **do zrobienia** |
+| 2.1 | Smoke test | ✅ | ✅ |
+| 3 | Część B — `drop policy` | ✅ | ✅ |
 
 Grandfathering idzie wyłącznie na produkcję. Na stagingu grupy zostają na
 `demo`, żeby było co testować.
 
+**Wdrożenie zakończone 2026-08-05.** Zweryfikowano na produkcji: limit demo
+zwraca `status='full'` przy przekroczeniu, blokada `plan='paid'` dla roli
+`authenticated` działa, dołączanie i przełączanie między grupami sprawne po
+usunięciu polityki.
+
 ---
 
-## Co zostało: faza 3
-
-Wykonać po smoke teście i odczekaniu kilku godzin.
+## Wykonana faza 3 — do wglądu
 
 ```sql
 drop policy if exists "insert as member only" on public.user_groups;
 ```
 
-### Dlaczego dopiero teraz
+### Dlaczego dopiero na końcu
 
 To **pierwszy nieodwracalny krok**. Po nim jedyną drogą do `user_groups` są
 `join_group()` i `create_group()` — obie `SECURITY DEFINER`, więc RLS ich nie
@@ -52,6 +55,10 @@ Odczekanie dotyczy wyłącznie użytkowników z otwartą kartą na starym bundlu
 Service worker serwuje nawigację network-first, a Vite hashuje nazwy plików,
 więc odświeżenie strony wystarcza — ale otwarta karta może chodzić na starym
 kodzie dowolnie długo.
+
+Gdyby ktoś zgłosił „nie mogę dołączyć do grupy" w najbliższych dniach:
+pierwsze pytanie brzmi, czy odświeżył stronę. Stary bundle robi surowy upsert,
+który od teraz odbija się o RLS.
 
 ### Weryfikacja po wykonaniu
 
