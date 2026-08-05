@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { c, useIsMobile } from "../styles.js";
+import { c, useIsMobile, p } from "../styles.js";
 import { sb, errMsg } from "../supabase.js";
 import { f, today, DAYS_SHORT, DAYS_PL, MONTHS_FULL, CANCEL_WINDOW_MS } from "../constants.js";
 import { ParkLogo, ConfirmDialog, Spinner } from "./UI.jsx";
@@ -9,6 +9,7 @@ import { UserMenu, AccountSettingsView } from "./AccountSettings.jsx";
 import { PushPromptModal } from "./PushPrompt.jsx";
 import { isPushSupported, getPushStatus } from "../push.js";
 import { Footer } from "./UI.jsx";
+import { I } from "./Icons.jsx";
 
 
 // ============ BANER STANU PLANU ============
@@ -31,7 +32,7 @@ function PlanBanner({ status, isAdmin, onOpenPlan }) {
 
   if(status.plan==="demo") {
     return (
-      <div style={{background:"#4a1a8c",color:"#e0d4ff",padding:"10px 16px",fontSize:12,textAlign:"center",borderBottom:"1px solid #5b21b6"}}>
+      <div style={{background:p.bannerBg,color:p.bannerFg,padding:"10px 16px",fontSize:12,textAlign:"center",borderBottom:"1px solid "+p.bannerBorder}}>
         Wersja demo · {status.current_members}/10 użytkowników z pełnym dostępem
         {link("Odblokuj pełną wersję")}
       </div>
@@ -69,13 +70,13 @@ function InviteModal({ group, onClose, isMobile }) {
     <div style={c.overlay} onClick={onClose}>
       <div style={isMobile?c.modalMobile:c.modal} onClick={function(e){e.stopPropagation();}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-          <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>📨 Zaproś do grupy</div>
+          <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0",display:"flex",alignItems:"center",gap:8}}><I n="invite" size={18} color={p.accent}/>Zaproś do grupy</div>
           <button style={{...c.btn(),padding:"4px 10px",fontSize:12}} onClick={onClose}>X</button>
         </div>
         <div style={{fontSize:12,color:"#6b7280",marginBottom:16}}>{group.name}</div>
         <label style={c.label}>Kod grupy</label>
         <div style={{...c.linkBox,marginBottom:16}}>
-          <span style={{flex:1,fontWeight:700,color:"#a78bfa",fontSize:16}}>{group.id}</span>
+          <span style={{flex:1,fontWeight:700,color:p.accent,fontSize:16}}>{group.id}</span>
           <button style={{...c.btn(copied?"success":"primary"),padding:"5px 10px",fontSize:12,flexShrink:0}} onClick={copyCode}>{copied?"Skopiowano":"Kopiuj kod"}</button>
         </div>
         <label style={c.label}>Gotowa wiadomość</label>
@@ -96,20 +97,20 @@ function BottomNav({ view, setView, pendingCount, myBookingsCount, isGuest }) {
   return (
     <div style={c.bottomNav}>
       <button style={c.bottomNavBtn(view==="browse")} onClick={function(){setView("browse");}}>
-        <span style={c.bottomNavIcon}>🗓</span>
+        <span style={c.bottomNavIcon}><I n="browse" size={22}/></span>
         <span>Przeglądaj</span>
       </button>
       <button style={c.bottomNavBtn(view==="mybookings")} onClick={function(){setView("mybookings");}}>
         <span style={{...c.bottomNavIcon,position:"relative"}}>
-          📋
-          {myBookingsCount>0 && <span style={{position:"absolute",top:-4,right:-10,background:"#7c3aed",color:"#fff",borderRadius:10,fontSize:9,fontWeight:700,padding:"1px 5px",minWidth:14,textAlign:"center"}}>{myBookingsCount}</span>}
+          <I n="bookings" size={22}/>
+          {myBookingsCount>0 && <span style={{position:"absolute",top:-4,right:-10,background:p.brand,color:"#fff",borderRadius:10,fontSize:9,fontWeight:700,padding:"1px 5px",minWidth:14,textAlign:"center"}}>{myBookingsCount}</span>}
         </span>
         <span>Rezerwacje</span>
       </button>
       {!isGuest && (
         <button style={c.bottomNavBtn(view==="myspots")} onClick={function(){setView("myspots");}}>
           <span style={{...c.bottomNavIcon,position:"relative"}}>
-            🚗
+            <I n="mySpots" size={22}/>
             {pendingCount>0 && <span style={{position:"absolute",top:-4,right:-10,background:"#dc2626",color:"#fff",borderRadius:10,fontSize:9,fontWeight:700,padding:"1px 5px",minWidth:14,textAlign:"center"}}>{pendingCount}</span>}
           </span>
           <span>Moje miejsca</span>
@@ -375,7 +376,7 @@ var myBookings = getMyBookings();
       <div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
           <button style={{...c.arrow,width:28,height:28,fontSize:15}} onClick={function(){calM===0?(setCalY(function(y){return y-1;}),setCalM(11)):setCalM(function(m){return m-1;});}}>{"<"}</button>
-          <span style={{fontSize:13,fontWeight:600,color:"#c4b5fd"}}>{MONTHS_FULL[calM]} {calY}</span>
+          <span style={{fontSize:13,fontWeight:600,color:p.accentSoft}}>{MONTHS_FULL[calM]} {calY}</span>
           <button style={{...c.arrow,width:28,height:28,fontSize:15}} onClick={function(){calM===11?(setCalY(function(y){return y+1;}),setCalM(0)):setCalM(function(m){return m+1;});}}>{">"}</button>
         </div>
         <div style={c.calGrid}>
@@ -391,7 +392,7 @@ var myBookings = getMyBookings();
             return <div key={k} style={c.calCell(has,past,sel,blockClick)} title={blockClick?"Ten dzień już ma termin całodniowy":""} onClick={function(){if(!past&&!blockClick) toggleMulti(k);}}>{day}</div>;
           })}
         </div>
-        {multiDates.length>0&&<div style={{fontSize:11,color:"#a78bfa",marginTop:8}}>Zaznaczono {multiDates.length} dni</div>}
+        {multiDates.length>0&&<div style={{fontSize:11,color:p.accent,marginTop:8}}>Zaznaczono {multiDates.length} dni</div>}
         <div style={{fontSize:11,color:"#4b5563",marginTop:6}}>Czerwone dni — istniejący termin (konflikt)</div>
       </div>
     );
@@ -417,7 +418,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
       <div style={{...(isMobile?c.wrapMobile:c.wrap),maxWidth:520}}>
         <button style={c.btn("ghost")} onClick={function(){setView("browse");}}>← Wróć</button>
 
-        <div style={{fontSize:20,fontWeight:600,color:"#a78bfa",marginTop:20,marginBottom:4}}>Plan grupy</div>
+        <div style={{fontSize:20,fontWeight:600,color:p.accent,marginTop:20,marginBottom:4}}>Plan grupy</div>
         <div style={{fontSize:13,color:"#6b7280",marginBottom:20}}>{group.name}</div>
 
         {groupStatus&&(
@@ -461,11 +462,11 @@ async function maybeShowPushPrompt(isFirstSpot) {
             <div style={{display:"flex",gap:10,marginBottom:20}}>
               <div style={{flex:1,background:"#1a1d2e",border:"1px solid #2a2d3e",padding:16,borderRadius:12,textAlign:"center"}}>
                 <div style={{fontSize:11,color:"#6b7280"}}>Miesięcznie</div>
-                <div style={{fontSize:24,fontWeight:700,color:"#a78bfa",marginTop:6}}>49 zł</div>
+                <div style={{fontSize:24,fontWeight:700,color:p.accent,marginTop:6}}>49 zł</div>
               </div>
               <div style={{flex:1,background:"#1a1d2e",border:"1px solid #2a2d3e",padding:16,borderRadius:12,textAlign:"center"}}>
                 <div style={{fontSize:11,color:"#6b7280"}}>Rocznie</div>
-                <div style={{fontSize:24,fontWeight:700,color:"#a78bfa",marginTop:6}}>499 zł</div>
+                <div style={{fontSize:24,fontWeight:700,color:p.accent,marginTop:6}}>499 zł</div>
               </div>
             </div>
           </>
@@ -473,7 +474,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
 
         <div style={{background:"#0f1117",border:"1px solid #2a2d3e",borderRadius:10,padding:16,fontSize:13,color:"#9ca3af",textAlign:"center",lineHeight:1.6}}>
           Aby otrzymać kod aktywacyjny, napisz do nas:<br/>
-          <a href="mailto:kontakt@parkshare.pl" style={{color:"#a78bfa",fontWeight:600,textDecoration:"none"}}>kontakt@parkshare.pl</a>
+          <a href="mailto:kontakt@parkshare.pl" style={{color:p.accent,fontWeight:600,textDecoration:"none"}}>kontakt@parkshare.pl</a>
         </div>
 
         <Footer/>
@@ -506,7 +507,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
               <button style={c.navBtn(view==="browse")} onClick={function(){setView("browse");setSelDate(new Date(today));setWeekOffset(0);}}>Przeglądaj</button>
               <button style={{...c.navBtn(view==="mybookings"),position:"relative"}} onClick={function(){setView("mybookings");}}>
   Moje rezerwacje
-  {myBookings.length>0&&<span style={{...c.newBadge,position:"absolute",top:-6,right:-6,padding:"1px 5px",fontSize:10,background:"#7c3aed"}}>{myBookings.length}</span>}
+  {myBookings.length>0&&<span style={{...c.newBadge,position:"absolute",top:-6,right:-6,padding:"1px 5px",fontSize:10,background:p.brand}}>{myBookings.length}</span>}
 </button>
               {!user.guest&&(
                 <button style={{...c.navBtn(view==="myspots"),position:"relative"}} onClick={function(){setView("myspots");}}>
@@ -539,7 +540,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
                     <div key={i} style={c.weekCell(act,cnt)} onClick={function(){setSelDate(new Date(d));}}>
                       <div style={{fontSize:10,color:act?"#e8eaf0":"#6b7280",marginBottom:2}}>{f.isSameDay(d,today)?"Dziś":DAYS_SHORT[(d.getDay()+6)%7]}</div>
                       <div style={{fontSize:13,fontWeight:600,color:act?"#fff":"#9ca3af"}}>{d.getDate()}</div>
-                      {cnt>0&&<div style={{fontSize:10,color:act?"#c4b5fd":"#6ee7b7",marginTop:2}}>{cnt} wol.</div>}
+                      {cnt>0&&<div style={{fontSize:10,color:act?p.accentSoft:"#6ee7b7",marginTop:2}}>{cnt} wol.</div>}
                     </div>
                   );
                 })}
@@ -554,7 +555,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
               </div>
               <button style={c.arrow} onClick={function(){setSelDate(function(d){return f.addDays(d,1);});}}>{">"}</button>
             </div>
-            {user.guest&&<div style={{background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#6b7280"}}>Przeglądasz jako gość. <span style={{color:"#a78bfa",cursor:"pointer"}} onClick={onLogout}>Zaloguj się</span>, aby dodawać miejsca.</div>}
+            {user.guest&&<div style={{background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#6b7280"}}>Przeglądasz jako gość. <span style={{color:p.accent,cursor:"pointer"}} onClick={onLogout}>Zaloguj się</span>, aby dodawać miejsca.</div>}
             {browseSpots.length===0?(
               <div style={{textAlign:"center",padding:"40px 20px"}}>
                 <div style={{marginBottom:16,display:"flex",justifyContent:"center"}}><ParkLogo size={48}/></div>
@@ -566,7 +567,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
-                      <span style={{fontSize:20}}>{sp.type==="outdoor"?"🌤":"🏗"}</span>
+                      <span style={{display:"flex",color:p.accent}}><I n={sp.type==="outdoor"?"outdoor":"garage"} size={20}/></span>
                       <div style={{minWidth:0}}>
                         <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>{sp.type==="outdoor"?"Miejsce naziemne":"Garaż podziemny"}</div>
                         <div style={{fontSize:12,color:"#6b7280",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{sp.desc}</div>
@@ -581,8 +582,8 @@ async function maybeShowPushPrompt(isFirstSpot) {
                 {sp.todaySlots.map(function(sl){return(
                   <div key={sl.id} style={{...c.slotRow,opacity:sl.booked?0.55:1}}>
                     <div style={{minWidth:0,flex:1}}>
-                      <div style={{fontSize:13,fontWeight:500,color:sl.booked?"#818cf8":"#e8eaf0"}}>{sl.all_day?"Cały dzień":sl.from_time+" – "+sl.to_time}</div>
-                      <div style={{fontSize:12,color:sl.price===0?"#6ee7b7":"#a78bfa",marginTop:2}}>{sl.booked?"Zarezerwowane: "+sl.booked_by:sl.price===0?"Bezpłatnie":sl.price+" zł"}</div>
+                      <div style={{fontSize:13,fontWeight:500,color:sl.booked?p.booked:"#e8eaf0"}}>{sl.all_day?"Cały dzień":sl.from_time+" – "+sl.to_time}</div>
+                      <div style={{fontSize:12,color:sl.price===0?"#6ee7b7":p.accent,marginTop:2}}>{sl.booked?"Zarezerwowane: "+sl.booked_by:sl.price===0?"Bezpłatnie":sl.price+" zł"}</div>
                     </div>
                     <div style={{display:"flex",gap:6,flexShrink:0}}>
                       {!sl.booked&&<button style={{...c.btn("ghost"),padding:"7px 14px",fontSize:13,border:"1px solid #2a2d3e"}} onClick={requireActive(function(){setBookModal({spotId:sp.id,slotId:sl.id,sl,sp,dk});})}>Zarezerwuj</button>}
@@ -604,7 +605,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
 
     {myBookings.length === 0 ? (
       <div style={{textAlign:"center",padding:"40px 20px",color:"#6b7280"}}>
-        <div style={{fontSize:48,marginBottom:12}}>📋</div>
+        <div style={{marginBottom:12,display:"flex",justifyContent:"center",color:"#374151"}}><I n="bookings" size={44} strokeWidth={1.25}/></div>
         <div style={{fontSize:14,marginBottom:16}}>Nie masz aktywnych rezerwacji</div>
         <button style={c.btn("primary")} onClick={function(){setView("browse");setSelDate(new Date(today));setWeekOffset(0);}}>Przejdź do kalendarza</button>
       </div>
@@ -620,19 +621,20 @@ async function maybeShowPushPrompt(isFirstSpot) {
                 <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0",marginBottom:2}}>{b.spot.name}</div>
                 <div style={{fontSize:12,color:"#9ca3af"}}>{f.fmtDate(dateObj)} · {when}</div>
               </div>
-              <div style={{fontSize:11,fontWeight:600,padding:"3px 8px",borderRadius:6,background:canCancel?"#3f1d1d":"#1e3a2a",color:canCancel?"#fca5a5":"#6ee7b7",flexShrink:0}}>
-                {canCancel ? "⏳ Oczekuje" : "✓ Zaakceptowane"}
+              <div style={{fontSize:11,fontWeight:600,padding:"3px 8px",borderRadius:6,background:canCancel?"#3f1d1d":"#1e3a2a",color:canCancel?"#fca5a5":"#6ee7b7",flexShrink:0,display:"flex",alignItems:"center",gap:4}}>
+                <I n={canCancel?"pending":"accepted"} size={13}/>
+                {canCancel ? "Oczekuje" : "Zaakceptowane"}
               </div>
             </div>
 
-            <div style={{fontSize:13,color:b.price===0?"#6ee7b7":"#a78bfa",marginBottom:8}}>
+            <div style={{fontSize:13,color:b.price===0?"#6ee7b7":p.accent,marginBottom:8}}>
               {b.price===0 ? "Bezpłatnie" : (b.price + " zł")}
             </div>
 
             <div style={{borderTop:"1px solid #22253a",paddingTop:8,fontSize:12,color:"#9ca3af"}}>
               <div style={{marginBottom:4}}>Właściciel: <span style={{color:"#e8eaf0"}}>{b.spot.owner||"—"}</span></div>
-              {b.spot.phone && <div style={{marginBottom:4}}>📞 <a href={"tel:"+b.spot.phone} style={{color:"#a78bfa",textDecoration:"none"}}>{b.spot.phone}</a></div>}
-              {b.spot.email && <div style={{marginBottom:4}}>✉ <a href={"mailto:"+b.spot.email} style={{color:"#a78bfa",textDecoration:"none"}}>{b.spot.email}</a></div>}
+              {b.spot.phone && <div style={{marginBottom:4,display:"flex",alignItems:"center",gap:6}}><I n="phone" size={13}/><a href={"tel:"+b.spot.phone} style={{color:p.accent,textDecoration:"none"}}>{b.spot.phone}</a></div>}
+              {b.spot.email && <div style={{marginBottom:4,display:"flex",alignItems:"center",gap:6}}><I n="email" size={13}/><a href={"mailto:"+b.spot.email} style={{color:p.accent,textDecoration:"none"}}>{b.spot.email}</a></div>}
               {b.spot.note && <div style={{marginTop:6,padding:8,background:"#0f1117",borderRadius:6,color:"#d1d5db",lineHeight:1.5}}>{b.spot.note}</div>}
             </div>
 
@@ -658,7 +660,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
         {view==="myspots"&&!user.guest&&(
           <div>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-              <div style={{fontSize:14,fontWeight:600,color:"#c4b5fd"}}>Moje miejsca parkingowe</div>
+              <div style={{fontSize:14,fontWeight:600,color:p.accentSoft}}>Moje miejsca parkingowe</div>
               <button style={c.btn("primary")} onClick={requireActive(function(){setShowAdd(function(v){return !v;});})}>+ Dodaj</button>
             </div>
 
@@ -683,7 +685,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
 
             {showAdd&&(
               <div style={{...c.card(true),marginBottom:20}}>
-                <div style={{fontSize:13,fontWeight:600,color:"#c4b5fd",marginBottom:14}}>Nowe miejsce</div>
+                <div style={{fontSize:13,fontWeight:600,color:p.accentSoft,marginBottom:14}}>Nowe miejsce</div>
                 {[["name","Numer miejsca","np. A-15"],["desc","Opis (opcjonalnie)","np. poziom -1"],["owner","Imię i nazwisko (opcjonalnie)","np. Jan Kowalski"]].map(function(row){
                   var fld=row[0],l=row[1],p=row[2];
                   return <div key={fld} style={{marginBottom:10}}><label style={c.label}>{l}</label><input style={c.input} placeholder={p} value={newSpot[fld]} onChange={function(e){var v=e.target.value;setNewSpot(function(prev){return {...prev,[fld]:v};});setNewSpotErr("");}}/></div>;
@@ -715,11 +717,11 @@ async function maybeShowPushPrompt(isFirstSpot) {
               var spSlots = slotsForSpot(sp.id);
               var hasPending = spSlots.some(function(sl){return sl.booked&&f.canCancel(sl.booked_at);});
               return (
-                <div key={sp.id} style={{...c.card(editingSpotId===sp.id||hasPending),marginBottom:16,cursor:"default",borderColor:hasPending?"#fbbf24":editingSpotId===sp.id?"#7c3aed":"#2a2d3e"}}>
+                <div key={sp.id} style={{...c.card(editingSpotId===sp.id||hasPending),marginBottom:16,cursor:"default",borderColor:hasPending?"#fbbf24":editingSpotId===sp.id?p.brand:"#2a2d3e"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:8,flexWrap:"wrap"}}>
                     <div style={{minWidth:0,flex:1}}>
                       <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                        <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0"}}>{sp.type==="outdoor"?"🌤 Naziemne":"⬇️ Garaż"} · nr {sp.name}</div>
+                        <div style={{fontSize:15,fontWeight:600,color:"#e8eaf0",display:"flex",alignItems:"center",gap:6}}><I n={sp.type==="outdoor"?"outdoor":"garage"} size={17} color={p.accent}/>{sp.type==="outdoor"?"Naziemne":"Garaż"} · nr {sp.name}</div>
                         {hasPending&&<span style={c.newBadge}>! Nowa</span>}
                       </div>
                       <div style={{fontSize:12,color:"#6b7280",marginTop:2}}>{sp.desc||"Brak opisu"}</div>
@@ -735,12 +737,12 @@ async function maybeShowPushPrompt(isFirstSpot) {
 
                   {editingSpotId===sp.id&&(
                     <div style={{background:"#0f1117",borderRadius:10,padding:14,marginBottom:14}}>
-                      <div style={{fontSize:12,fontWeight:600,color:"#a78bfa",marginBottom:12}}>Wybierz dni dostępności</div>
+                      <div style={{fontSize:12,fontWeight:600,color:p.accent,marginBottom:12}}>Wybierz dni dostępności</div>
                       <SlotCal spotId={sp.id}/>
                       <div style={{marginTop:14,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                         <div style={{gridColumn:"1/-1"}}>
                           <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#9ca3af",cursor:"pointer"}}>
-                            <input type="checkbox" checked={slotForm.allDay} onChange={function(e){var v=e.target.checked;setSlotForm(function(p){return {...p,allDay:v};});}} style={{accentColor:"#7c3aed"}}/>
+                            <input type="checkbox" checked={slotForm.allDay} onChange={function(e){var v=e.target.checked;setSlotForm(function(p){return {...p,allDay:v};});}} style={{accentColor:p.brand}}/>
                             Cały dzień
                           </label>
                         </div>
@@ -773,7 +775,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
                               <div style={{fontSize:12,fontWeight:500,color:"#e8eaf0"}}>{f.fmtDate(f.parseDate(sl.date))}</div>
                               <div style={{fontSize:12,color:"#6b7280",marginTop:2}}>{sl.all_day?"Cały dzień":(sl.from_time+"–"+sl.to_time)} · {sl.price===0?"Bezpłatnie":(sl.price+" zł")}</div>
                               {sl.booked&&(
-                                <div style={{fontSize:11,color:canCancel?"#fbbf24":"#818cf8",marginTop:2}}>
+                                <div style={{fontSize:11,color:canCancel?"#fbbf24":p.booked,marginTop:2}}>
                                   {sl.booked_by}{sl.booker_phone?" · "+sl.booker_phone:""}
                                   {canCancel?<span> · oczekuje ({f.timeLeft(sl.booked_at)})</span>:<span style={{color:"#4b5563"}}> · zaakceptowane</span>}
                                 </div>
@@ -834,10 +836,10 @@ async function maybeShowPushPrompt(isFirstSpot) {
                     var isPublic = contactModal.spot_visibility==="public";
                     var mySlot = slots.find(function(sl){return sl.spot_id===contactModal.id&&sl.booked&&sl.booked_by_uid===user.uid&&!f.canCancel(sl.booked_at);});
                     var showImmediate = !user.guest&&(isOwner(contactModal)||isAdmin||isPublic);
-                    if(showImmediate) return <div style={{fontSize:15,fontWeight:700,color:"#a78bfa"}}>{contactModal.name||"Nie podano"}</div>;
-                    if(mySlot) return <div style={{fontSize:15,fontWeight:700,color:"#a78bfa"}}>{contactModal.name||"Nie podano"}</div>;
+                    if(showImmediate) return <div style={{fontSize:15,fontWeight:700,color:p.accent}}>{contactModal.name||"Nie podano"}</div>;
+                    if(mySlot) return <div style={{fontSize:15,fontWeight:700,color:p.accent}}>{contactModal.name||"Nie podano"}</div>;
                     if(isPublic) return <div style={{fontSize:12,color:"#6b7280"}}>Widoczny po dokonaniu rezerwacji</div>;
-                    return <div><div style={{fontSize:12,color:"#374151",marginBottom:4}}>Numer jest ukryty — pojawi się po zatwierdzeniu rezerwacji.</div>{contactModal.phone&&<div style={{fontSize:12,color:"#6b7280",marginTop:4}}>Możesz zapytać właściciela: <span style={{color:"#a78bfa"}}>{contactModal.phone}</span></div>}</div>;
+                    return <div><div style={{fontSize:12,color:"#374151",marginBottom:4}}>Numer jest ukryty — pojawi się po zatwierdzeniu rezerwacji.</div>{contactModal.phone&&<div style={{fontSize:12,color:"#6b7280",marginTop:4}}>Możesz zapytać właściciela: <span style={{color:p.accent}}>{contactModal.phone}</span></div>}</div>;
                   })()}
                 </div>
               </div>
@@ -909,7 +911,7 @@ async function maybeShowPushPrompt(isFirstSpot) {
             </div>
             <div style={{marginBottom:12}}>
               <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#9ca3af",cursor:"pointer"}}>
-                <input type="checkbox" checked={editSlotModal.allDay} onChange={function(e){var v=e.target.checked;setEditSlotModal(function(p){return {...p,allDay:v};});}} style={{accentColor:"#7c3aed"}}/>
+                <input type="checkbox" checked={editSlotModal.allDay} onChange={function(e){var v=e.target.checked;setEditSlotModal(function(p){return {...p,allDay:v};});}} style={{accentColor:p.brand}}/>
                 Cały dzień
               </label>
             </div>

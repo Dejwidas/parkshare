@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { c, useIsMobile } from "../styles.js";
+import { c, useIsMobile, p } from "../styles.js";
 import { sb } from "../supabase.js";
 import { f, today } from "../constants.js";
+import { I } from "./Icons.jsx";
 
 export function AdminPanel({ groupId, user, spots, slots, onBack, onDataChange }) {
   var isMobile = useIsMobile();
@@ -77,8 +78,8 @@ export function AdminPanel({ groupId, user, spots, slots, onBack, onDataChange }
           <button onClick={function(){setSelectedSpotId(null);setShowHistory(false);}} style={{background:"transparent",color:"#9ca3af",border:"none",padding:0,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
             ← <span>Lista miejsc</span>
           </button>
-          <div style={{fontSize:15,fontWeight:600,color:"#a78bfa",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-            {sp.type==="outdoor"?"🌤":"🏗"} nr {sp.name}
+          <div style={{fontSize:15,fontWeight:600,color:p.accent,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            <I n={sp.type==="outdoor"?"outdoor":"garage"} size={15}/> nr {sp.name}
           </div>
           <div style={{width:50}}/>
         </div>
@@ -95,7 +96,7 @@ export function AdminPanel({ groupId, user, spots, slots, onBack, onDataChange }
             <DataRow label="E-mail" value={sp.email||"—"}/>
             <DataRow label="Widoczność" value={sp.spot_visibility==="public"?"Jawne":"Ukryte"}/>
             {sp.note && (
-              <div style={{marginTop:10,padding:"10px 12px",background:"#12151f",border:"1px solid #2a2d3e",borderRadius:8,fontSize:12,color:"#c4b5fd",lineHeight:1.5}}>
+              <div style={{marginTop:10,padding:"10px 12px",background:"#12151f",border:"1px solid #2a2d3e",borderRadius:8,fontSize:12,color:p.accentSoft,lineHeight:1.5}}>
                 <span style={{fontSize:11,color:"#6b7280",display:"block",marginBottom:3}}>Notatka</span>
                 {sp.note}
               </div>
@@ -175,7 +176,7 @@ export function AdminPanel({ groupId, user, spots, slots, onBack, onDataChange }
         <button onClick={onBack} style={{background:"transparent",color:"#9ca3af",border:"none",padding:0,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
           ← <span>Wróć</span>
         </button>
-        <div style={{fontSize:15,fontWeight:600,color:"#a78bfa"}}>🛡 Panel admina</div>
+        <div style={{fontSize:15,fontWeight:600,color:p.accent,display:"flex",alignItems:"center",gap:8}}><I n="admin" size={17}/>Panel admina</div>
         <div style={{width:50}}/>
       </div>
 
@@ -245,7 +246,7 @@ export function AdminPanel({ groupId, user, spots, slots, onBack, onDataChange }
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
                   <div style={{minWidth:0,flex:1}}>
                     <div style={{fontSize:14,fontWeight:600,color:"#e8eaf0",display:"flex",alignItems:"center",gap:6}}>
-                      <span>{sp.type==="outdoor"?"🌤":"🏗"}</span>
+                      <span style={{display:"flex",color:p.accent}}><I n={sp.type==="outdoor"?"outdoor":"garage"} size={16}/></span>
                       <span>nr {sp.name}</span>
                       {activeBooked>0 && <span style={c.newBadge}>{activeBooked} rez.</span>}
                     </div>

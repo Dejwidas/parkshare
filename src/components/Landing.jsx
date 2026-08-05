@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { c } from "../styles.js";
+import { c, p } from "../styles.js";
 import { sb, errMsg } from "../supabase.js";
 import { ParkLogo, Footer, Spinner } from "./UI.jsx";
 import { HelpButton } from "./Help.jsx";
@@ -47,8 +47,8 @@ export function Landing({ user, onJoin, onNew, onLogout }) {
   return (
     <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{marginBottom:8}}><ParkLogo size={56}/></div>
-      <div style={{fontSize:24,fontWeight:600,color:"#a78bfa",marginBottom:2}}>ParkShare</div>
-      <div style={{fontSize:12,color:"#6b7280",marginBottom:28}}>Zalogowany jako: <span style={{color:"#a78bfa"}}>{user.name}</span>{user.guest?" (gosc)":""}</div>
+      <div style={{fontSize:24,fontWeight:600,color:p.accent,marginBottom:2}}>ParkShare</div>
+      <div style={{fontSize:12,color:"#6b7280",marginBottom:28}}>Zalogowany jako: <span style={{color:p.accent}}>{user.name}</span>{user.guest?" (gosc)":""}</div>
       <div style={{width:"100%",maxWidth:360}}>
         {myGroups.length>0&&(
           <div style={{marginBottom:16}}>
@@ -56,7 +56,7 @@ export function Landing({ user, onJoin, onNew, onLogout }) {
             {myGroups.map(function(g){return(
               <div key={g.id} style={{...c.card(false),marginBottom:8,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between"}} onClick={function(){onJoin(g.id);}}>
                 <div><div style={{fontSize:14,fontWeight:600,color:"#e8eaf0"}}>{g.name}</div><div style={{fontSize:11,color:"#4b5563",marginTop:2}}>{g.id}</div></div>
-                <span style={{fontSize:18,color:"#7c3aed"}}>&gt;</span>
+                <span style={{fontSize:18,color:p.brand}}>&gt;</span>
               </div>
             );})}
             <div style={{borderTop:"1px solid #1f2230",margin:"16px 0"}}/>

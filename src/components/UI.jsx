@@ -1,5 +1,5 @@
 import React from "react";
-import { c } from "../styles.js";
+import { c, p } from "../styles.js";
 
 export function Footer() {
   return (
@@ -18,7 +18,7 @@ export function Footer() {
 
 export function ParkLogo({ size = 32 }) {
   return (
-    <div style={{width:size,height:size,borderRadius:Math.round(size*0.22),background:"#7c3aed",display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+    <div style={{width:size,height:size,borderRadius:Math.round(size*0.22),background:p.brand,display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
       <span style={{fontSize:Math.round(size*0.58),fontWeight:800,color:"#fff",fontFamily:"system-ui,sans-serif",lineHeight:1}}>P</span>
     </div>
   );

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { c } from "../styles.js";
+import { c, p } from "../styles.js";
 import { sb, clearSession } from "../supabase.js";
 import { isPushSupported, getPushStatus, subscribePush, unsubscribePush } from "../push.js";
+import { I } from "./Icons.jsx";
 
 // ============ MENU UŻYTKOWNIKA (dropdown w headerze) ============
 export function UserMenu({ user, onOpenSettings, onOpenHelp, onLogout }) {
@@ -18,7 +19,7 @@ export function UserMenu({ user, onOpenSettings, onOpenHelp, onLogout }) {
   var initial = (name.charAt(0) || "?").toUpperCase();
   var isGuest = !!(user && user.guest);
 
-  var menuItemStyle = {display:"block",width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"11px 12px",color:"#e8eaf0",fontSize:14,cursor:"pointer"};
+  var menuItemStyle = {display:"flex",alignItems:"center",gap:10,width:"100%",textAlign:"left",background:"transparent",border:"none",padding:"11px 12px",color:"#e8eaf0",fontSize:14,cursor:"pointer"};
 
   return (
     <div ref={ref} style={{position:"relative"}}>
@@ -44,7 +45,7 @@ export function UserMenu({ user, onOpenSettings, onOpenHelp, onLogout }) {
               style={menuItemStyle}
               onMouseEnter={function(e){e.currentTarget.style.background="#22253a";}}
               onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}
-            >⚙  Ustawienia konta</button>
+            ><I n="settings" size={16}/>Ustawienia konta</button>
           )}
 
             <button
@@ -52,7 +53,7 @@ export function UserMenu({ user, onOpenSettings, onOpenHelp, onLogout }) {
             style={menuItemStyle}
             onMouseEnter={function(e){e.currentTarget.style.background="#22253a";}}
             onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}
-          >❓  Pomoc</button>
+          ><I n="help" size={16}/>Pomoc</button>
 
           <a  href="/regulamin.html"
             target="_blank"
@@ -68,7 +69,7 @@ export function UserMenu({ user, onOpenSettings, onOpenHelp, onLogout }) {
             style={{...menuItemStyle,color:"#f87171",borderTop:!isGuest?"1px solid #2a2d3e":"none"}}
             onMouseEnter={function(e){e.currentTarget.style.background="#22253a";}}
             onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}
-          >{isGuest?"↩  Zaloguj się":"↩  Wyloguj"}</button>
+          ><I n={isGuest?"login":"logout"} size={16}/>{isGuest?"Zaloguj się":"Wyloguj"}</button>
         </div>
       )}
     </div>
@@ -135,7 +136,7 @@ function NotificationsSection({ user }) {
   }
 
   var card = {background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:12,padding:16,marginBottom:16};
-  var btn = {background:status.subscribed?"transparent":"#7c3aed",color:status.subscribed?"#e8eaf0":"#fff",border:status.subscribed?"1px solid #2a2d3e":"none",borderRadius:8,padding:"10px 14px",fontSize:14,fontWeight:600,cursor:busy?"wait":"pointer",width:"100%",opacity:busy?0.6:1};
+  var btn = {background:status.subscribed?"transparent":p.brand,color:status.subscribed?"#e8eaf0":"#fff",border:status.subscribed?"1px solid #2a2d3e":"none",borderRadius:8,padding:"10px 14px",fontSize:14,fontWeight:600,cursor:busy?"wait":"pointer",width:"100%",opacity:busy?0.6:1};
 
   return (
     <div style={card}>
@@ -152,14 +153,14 @@ function NotificationsSection({ user }) {
 
       {status.supported && status.permission === "denied" && (
         <div style={{fontSize:12,color:"#fbbf24",lineHeight:1.5,marginBottom:8}}>
-          ⚠ Powiadomienia są zablokowane w ustawieniach przeglądarki. Aby je włączyć, odblokuj je w ustawieniach strony.
+          <I n="warning" size={13} style={{marginRight:5}}/>Powiadomienia są zablokowane w ustawieniach przeglądarki. Aby je włączyć, odblokuj je w ustawieniach strony.
         </div>
       )}
 
       {status.supported && status.permission !== "denied" && (
         <>
           <button style={btn} onClick={toggle} disabled={busy}>
-            {busy ? "..." : (status.subscribed ? "🔕  Wyłącz powiadomienia" : "🔔  Włącz powiadomienia")}
+            {busy ? "..." : (<span style={{display:"inline-flex",alignItems:"center",gap:8}}><I n={status.subscribed?"bellOff":"bellOn"} size={15}/>{status.subscribed ? "Wyłącz powiadomienia" : "Włącz powiadomienia"}</span>)}
           </button>
           {status.subscribed && (
             <div style={{fontSize:11,color:"#6ee7b7",marginTop:8}}>✓ Powiadomienia są aktywne na tym urządzeniu</div>
@@ -234,7 +235,7 @@ function DeleteAccountSection({ user, onLogout }) {
       {stage==="warning" && (
         <div>
           <div style={{background:"#3f1d1d",border:"1px solid #7f1d1d",borderRadius:8,padding:12,marginBottom:12,fontSize:13,color:"#fca5a5",lineHeight:1.5}}>
-            ⚠ <strong>Masz aktywne rezerwacje:</strong>
+            <I n="warning" size={13} style={{marginRight:5}}/><strong>Masz aktywne rezerwacje:</strong>
             {counts.booker>0 && <div style={{marginTop:4}}>• Zarezerwowane przez Ciebie miejsca: <strong>{counts.booker}</strong></div>}
             {counts.owner>0 && <div style={{marginTop:4}}>• Rezerwacje na Twoich miejscach: <strong>{counts.owner}</strong></div>}
             <div style={{marginTop:8}}>Usunięcie konta skasuje również te rezerwacje. Osoby, których to dotyczy, nie zostaną powiadomione.</div>

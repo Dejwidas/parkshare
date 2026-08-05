@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { c } from "../styles.js";
+import { c, p } from "../styles.js";
 import { sb, errMsg } from "../supabase.js";
 import { ParkLogo } from "./UI.jsx";
+import { I } from "./Icons.jsx";
 
 export function GroupSwitcher({ groupId, groupName, user, isAdmin, onJoin, onNew, onInvite, onOpenAdmin, onOpenPlan }) {
   var [open,setOpen] = useState(false);
@@ -50,7 +51,7 @@ async function join(){
     <div style={{position:"relative"}}>
       <div style={{cursor:"pointer",display:"flex",alignItems:"center",gap:6}} onClick={function(){setOpen(function(o){return !o;});setShowJoinForm(false);setShowNewForm(false);}}>
         <div>
-          <div style={{fontSize:16,fontWeight:600,color:"#a78bfa",display:"flex",alignItems:"center",gap:8}}>
+          <div style={{fontSize:16,fontWeight:600,color:p.accent,display:"flex",alignItems:"center",gap:8}}>
             <ParkLogo size={22}/>
             <span>ParkShare</span>
           </div>
@@ -70,13 +71,13 @@ async function join(){
                 var isActive = g.id===groupId;
                 return (
                   <div key={g.id}
-                    style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,marginBottom:4,background:isActive?"#2a1f5e":"transparent",cursor:isActive?"default":"pointer"}}
+                    style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,marginBottom:4,background:isActive?p.brandDim:"transparent",cursor:isActive?"default":"pointer"}}
                     onClick={function(){if(!isActive){setOpen(false);onJoin(g.id);}}}>
                     <div style={{minWidth:0,flex:1}}>
-                      <div style={{fontSize:13,fontWeight:500,color:isActive?"#a78bfa":"#e8eaf0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.name}</div>
+                      <div style={{fontSize:13,fontWeight:500,color:isActive?p.accent:"#e8eaf0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{g.name}</div>
                       <div style={{fontSize:11,color:"#4b5563"}}>{g.id}</div>
                     </div>
-                    {isActive&&<span style={{fontSize:11,color:"#a78bfa",flexShrink:0,marginLeft:6}}>aktywna</span>}
+                    {isActive&&<span style={{fontSize:11,color:p.accent,flexShrink:0,marginLeft:6}}>aktywna</span>}
                   </div>
                 );
               })}
@@ -86,7 +87,7 @@ async function join(){
           {!showJoinForm&&!showNewForm&&(
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {!user.guest && typeof onInvite === "function" && (
-                <button style={{...c.btn("ghost"),width:"100%",fontSize:12,padding:"8px",border:"1px solid #2a2d3e"}} onClick={function(){setOpen(false);onInvite();}}>📨  Zaproś do grupy</button>
+                <button style={{...c.btn("ghost"),width:"100%",fontSize:12,padding:"8px",border:"1px solid #2a2d3e",display:"flex",alignItems:"center",gap:8,justifyContent:"center"}} onClick={function(){setOpen(false);onInvite();}}><I n="invite" size={14}/>Zaproś do grupy</button>
               )}
               <button style={{...c.btn("ghost"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowJoinForm(true);}}>+ Dołącz do grupy (kod)</button>
               <button style={{...c.btn("default"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setShowNewForm(true);}}>+ Utwórz nową grupę</button>
@@ -94,10 +95,10 @@ async function join(){
                 <>
                   <div style={{borderTop:"1px solid #2a2d3e",margin:"4px 0"}}/>
                   {typeof onOpenAdmin === "function" && (
-                    <button style={{...c.btn("admin"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setOpen(false);onOpenAdmin();}}>🛡  Panel admina</button>
+                    <button style={{...c.btn("admin"),width:"100%",fontSize:12,padding:"8px",display:"flex",alignItems:"center",gap:8,justifyContent:"center"}} onClick={function(){setOpen(false);onOpenAdmin();}}><I n="admin" size={14}/>Panel admina</button>
                   )}
                   {typeof onOpenPlan === "function" && (
-                    <button style={{...c.btn("admin"),width:"100%",fontSize:12,padding:"8px"}} onClick={function(){setOpen(false);onOpenPlan();}}>⭐  Plan grupy</button>
+                    <button style={{...c.btn("admin"),width:"100%",fontSize:12,padding:"8px",display:"flex",alignItems:"center",gap:8,justifyContent:"center"}} onClick={function(){setOpen(false);onOpenPlan();}}><I n="plan" size={14}/>Plan grupy</button>
                   )}
                 </>
               )}

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { c } from "../styles.js";
+import { c, p } from "../styles.js";
+import { I } from "./Icons.jsx";
 import { sb, setAuthToken, saveSession } from "../supabase.js";
 import { f } from "../constants.js";
 import { ParkLogo, Footer } from "./UI.jsx";
@@ -60,7 +61,7 @@ export function AuthScreen({ onAuth }) {
         <div style={{fontSize:16,fontWeight:600,color:"#e8eaf0",marginBottom:8}}>Sprawdź swoją skrzynkę!</div>
         <div style={{fontSize:13,color:"#6b7280",marginBottom:16,lineHeight:1.6}}>
           Wysłaliśmy link weryfikacyjny na adres<br/>
-          <span style={{color:"#a78bfa"}}>{email}</span><br/><br/>
+          <span style={{color:p.accent}}>{email}</span><br/><br/>
           Kliknij w link w e-mailu a następnie zaloguj się.
         </div>
         <button style={{...c.btn("primary"),width:"100%"}} onClick={function(){setVerifyMsg(false);setMode("login");}}>Przejdź do logowania</button>
@@ -72,7 +73,7 @@ export function AuthScreen({ onAuth }) {
   if(mode==="choose") return (
     <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{marginBottom:8}}><ParkLogo size={56}/></div>
-      <div style={{fontSize:24,fontWeight:600,color:"#a78bfa",marginBottom:4}}>ParkShare</div>
+      <div style={{fontSize:24,fontWeight:600,color:p.accent,marginBottom:4}}>ParkShare</div>
       <div style={{fontSize:13,color:"#4b5563",marginBottom:40}}>Wynajem miejsc parkingowych na osiedlu</div>
       <div style={{width:"100%",maxWidth:340,display:"flex",flexDirection:"column",gap:10}}>
         <button style={{...c.btn("primary"),width:"100%",padding:"12px"}} onClick={function(){setMode("register");}}>Utwórz konto</button>
@@ -104,12 +105,12 @@ export function AuthScreen({ onAuth }) {
 
   if(mode==="reset-sent") return (
     <div style={{minHeight:"100vh",background:"#0f1117",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
-      <div style={{marginBottom:16,fontSize:40}}>📬</div>
+      <div style={{marginBottom:16,display:"flex",justifyContent:"center",color:p.accent}}><I n="mailSent" size={40} strokeWidth={1.25}/></div>
       <div style={{...c.card(true),maxWidth:360,width:"100%",textAlign:"center"}}>
         <div style={{fontSize:16,fontWeight:600,color:"#e8eaf0",marginBottom:8}}>Sprawdź skrzynkę!</div>
         <div style={{fontSize:13,color:"#6b7280",marginBottom:16,lineHeight:1.6}}>
           Wysłaliśmy link do resetowania hasła na adres<br/>
-          <span style={{color:"#a78bfa"}}>{email}</span>
+          <span style={{color:p.accent}}>{email}</span>
         </div>
         <button style={{...c.btn("primary"),width:"100%"}} onClick={function(){setMode("login");}}>Wróć do logowania</button>
       </div>
