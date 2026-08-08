@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { p } from "../styles.js";
 
 // ============ TREŚĆ FAQ ============
 // Edytuj swobodnie — kategorie i pytania trzymane są tutaj.
@@ -176,7 +177,7 @@ export function HelpScreen({ onBack }) {
         {FAQ.map(function(cat, ci) {
           return (
             <div key={ci} style={{marginBottom:20}}>
-              <div style={{fontSize:12,fontWeight:600,color:"#a78bfa",textTransform:"uppercase",letterSpacing:0.5,marginBottom:10,paddingLeft:4}}>
+              <div style={{fontSize:12,fontWeight:600,color:p.accent,textTransform:"uppercase",letterSpacing:0.5,marginBottom:10,paddingLeft:4}}>
                 {cat.title}
               </div>
               <div style={{background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:12,overflow:"hidden"}}>
@@ -213,7 +214,7 @@ export function HelpScreen({ onBack }) {
         <div style={{background:"#1a1d2e",border:"1px solid #2a2d3e",borderRadius:12,padding:16,marginTop:16,textAlign:"center"}}>
           <div style={{fontSize:13,color:"#9ca3af",lineHeight:1.6}}>
             Nie znalazłeś odpowiedzi?<br/>
-            Napisz do nas: <a href="mailto:kontakt@parkshare.pl" style={{color:"#a78bfa",textDecoration:"none"}}>kontakt@parkshare.pl</a>
+            Napisz do nas: <a href="mailto:kontakt@parkshare.pl" style={{color:p.accent,textDecoration:"none"}}>kontakt@parkshare.pl</a>
           </div>
         </div>
       </div>
@@ -230,7 +231,7 @@ export function HelpButton({ onClick }) {
       style={{
         display:"inline-flex",alignItems:"center",justifyContent:"center",
         width:32,height:32,background:"#1a1d2e",border:"1px solid #2a2d3e",
-        borderRadius:"50%",cursor:"pointer",color:"#a78bfa",fontSize:14,fontWeight:700
+        borderRadius:"50%",cursor:"pointer",color:p.accent,fontSize:14,fontWeight:700
       }}
     >?</button>
   );
